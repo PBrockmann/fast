@@ -1,0 +1,157 @@
+#!/bin/ksh 
+#
+# Author: Patrick Brockmann
+# Contact: Patrick.Brockmann@ipsl.jussieu.fr
+# $Date: 2009/05/14 15:04:00 $
+# $Name: FAST_608_1_3 $
+# $Revision: 1.1.1.27 $
+# History:
+# Modification:
+#
+
+#---------------------------------------------
+verbose=0
+ps_option=0
+merge=0
+
+#---------------------------------------------
+while [ $# -ne 0 ]
+do
+        case $1 in
+        -h|--help|-help)
+                echo "----------------------------------------------------------------------------"
+	        echo "Usage: plt2pdf [-h] [-v] [-p] metafile.plt [metafile.plt ...]"
+	        echo "          [merged_output.pdf]"
+                echo
+                echo "Description:"
+                echo "   Convert metafile(s) produced by ferret to pdf file(s)"
+                echo "   via postscript files."
+                echo "   plt2pdf is a shell script based on gksm2ps distributed with ferret"
+                echo "   and gs from http://www.cs.wisc.edu/~ghost."
+                echo
+                echo "        plt -----------> ps ------> pdf"
+                echo "             (gksm2ps)       (gs)"
+                echo
+                echo "Arguments:"
+                echo "   metafile.plt: Metafile must have .plt in name."
+                echo
+                echo "   merged_output.pdf: This file must have .pdf as extension."
+                echo
+	        echo "Options:"
+                echo "   -h, --help, -help"
+                echo "       Print this manual."
+                echo
+                echo "   -v, --verbose"
+                echo "       Informations are printed on standard output."
+                echo
+	        echo "   -p, --ps, --postscript"
+	        echo "       Keeps intermediate ps files."
+                echo
+                echo "Example:"
+                echo "   plt2pdf page1.plt page2.plt final.pdf"
+                echo "      to merge page1 and page2 as a multipage pdf file." 
+                echo
+                echo "   plt2pdf \`ls -rt metafile.plt*\` final.pdf"
+                echo "      to merge metafiles sorted by date of creation as a multipage pdf file." 
+                echo
+                echo "----------------------------------------------------------------------------"
+                exit ;;
+        -p|--ps|--postscript)
+                ps_option=1
+                shift ;;
+        -v|--verbose)
+                verbose=1
+                shift ;;
+        -*)
+                plt2pdf -h
+                exit ;;
+        *)
+                break ;;
+
+        esac
+done
+ 
+if [ $# -lt 1 ] ; then
+        plt2pdf -h
+        exit
+fi
+
+#---------------------------------------------
+function PRINT {
+if [ $verbose -ne 1 ] ; then
+   echo "$1"
+fi;
+}
+
+#--------------------------------------
+nb_plt_files=1
+for file in $@ ; do
+    if [ $nb_plt_files -eq $# ] && (echo $file | grep -si "\.pdf" > /dev/null) ; then
+          merge=1
+          merged_pdf_file=$file
+    else
+       plt_files="$plt_files $file"
+    fi
+    let nb_plt_files=nb_plt_files+1
+done
+
+ps_files=""
+pdf_files=""
+
+#--------------------------------------
+# convert plt to ps file
+nb_ps_files=0
+for plt_file in $plt_files ; do
+    if [[ -f $plt_file && -s $plt_file ]] ; then
+      ps_file=`echo $plt_file | sed -e "s/.plt/.ps/"` 
+      gksm2ps -R -d cps -l cps -o $ps_file $plt_file
+      if [[ -f $ps_file && -s $ps_file ]] ; then
+          ps_files="$ps_files $ps_file"
+          PRINT "plt2pdf...Convert successfully $plt_file to $ps_file"
+          let nb_ps_files=nb_ps_files+1
+      else 
+          PRINT "plt2pdf...Program gksm2ps cannot convert $plt_file to ps!"
+      fi 
+    else
+      PRINT "plt2pdf...$plt_file does not exist or has 0 size!"
+    fi
+done
+
+#--------------------------------------
+if [ $nb_ps_files -eq 0 ] ; then
+   exit
+fi
+
+#--------------------------------------
+if [ $merge -ne 1 ] ; then
+# one pdf file foreach ps file
+   for ps_file in $ps_files ; do
+       pdf_file=`echo $ps_file | sed -e "s/.ps/.pdf/"` 
+       gs -q -dNOPAUSE -dBATCH -dDOPDFMARKS -sDEVICE=pdfwrite -sOutputFile=$pdf_file $ps_file
+       if [[ -f $pdf_file && -s $pdf_file ]] ; then
+          pdf_files="$pdf_files $pdf_file"
+          PRINT "plt2pdf...Convert successfully $ps_file to $pdf_file"
+       else 
+          PRINT "plt2pdf...Program gs cannot convert $ps_file to pdf!"
+       fi 
+   done 
+
+else
+# merge all ps files into one single pdf file
+   gs -q -dNOPAUSE -dBATCH -dDOPDFMARKS -sDEVICE=pdfwrite -sOutputFile=$merged_pdf_file $ps_files
+   if [[ -f $merged_pdf_file && -s $merged_pdf_file ]] ; then
+      PRINT "plt2pdf...Convert successfully $ps_files to $merged_pdf_file"
+   else 
+      PRINT "plt2pdf...Program gs cannot convert $ps_files to pdf!"
+   fi
+   rm -f $pdf_files 
+fi
+
+#--------------------------------------
+# keep ps files
+if [ $ps_option -ne 1 ] ; then
+   rm -f $ps_files 
+   PRINT "plt2pdf...Remove intermediate ps files"
+fi
+
+

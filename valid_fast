@@ -1,0 +1,71 @@
+#!/bin/ksh
+
+#**************************************************************
+#
+# Author: Patrick Brockmann
+# Contact: Patrick.Brockmann@cea.fr
+# $Date: 2009/05/14 15:04:00 $ 
+# $Name: FAST_608_1_3 $
+# $Revision: 1.1.1.1 $
+# History:
+# Modification:
+#
+#**************************************************************
+
+echo "#=============================================================="
+gs -v > /dev/null 2>&1
+if [ $? -eq 0 ] ; then
+	echo "Check gs ................................................[ OK ]"
+	gs -v
+    else
+	echo "Check gs ............................................[ FAILED ]"
+fi
+
+echo "#=============================================================="
+pdflatex -v > /dev/null 2>&1
+if [ $? -eq 0 ] ; then
+	echo "Check pdflatex ..........................................[ OK ]"
+	pdflatex -v
+    else
+	echo "Check pdflatex ......................................[ FAILED ]"
+fi
+
+echo "#=============================================================="
+pnmflip --version > /dev/null 2>&1
+if [ $? -eq 0 ] ; then
+	echo "Check pnmflip ...........................................[ OK ]"
+	pnmflip --version 
+    else
+	echo "Check pnmflip  ......................................[ FAILED ]"
+fi
+
+echo "#=============================================================="
+convert -version > /dev/null 2>&1
+if [ $? -eq 0 ] ; then
+	echo "Check convert ...........................................[ OK ]"
+	convert -version
+    else
+	echo "Check convert .......................................[ FAILED ]"
+fi
+
+echo "#=============================================================="
+png2swf -version > /dev/null 2>&1
+if [ $? -eq 0 ] ; then
+	echo "Check png2swf ...........................................[ OK ]"
+	png2swf -version
+    else
+	echo "Check png2swf .......................................[ FAILED ]"
+fi
+
+echo "#=============================================================="
+which ferret > /dev/null 2>&1
+if [ $? -eq 0 ] ; then
+	echo "Check ferret ............................................[ OK ]"
+	which ferret
+    else
+	echo "Check ferret ........................................[ FAILED ]"
+fi
+
+echo "#=============================================================="
+
+

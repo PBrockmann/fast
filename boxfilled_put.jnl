@@ -1,0 +1,58 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Plot boxfilled in the active viewport
+!
+! Usage: go boxfilled_put x1 y1 x2 y2 polygon_qualifiers value "@AS text" [textheight=0.3] [textoffset=2*textheight]
+!
+! Author: Patrick Brockmann 
+! Contact: Patrick.Brockmann@cea.fr
+! $Date: 2009/05/14 15:03:59 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.4 $
+! History:
+! Modification:
+! Exemple:
+!          yes? use levitus_climatology
+!          yes? go margins_set 20 20 15 25
+!          yes? shade/nokey temp[k=1]
+!          yes? go boxfilled_put 80 35 85 38 /over/nolab/line/fill/lev 16 "@AS Level 16"
+!          yes? go boxfilled_put 80 30 85 33 /over/nolab/line/fill/lev 3 "@AS This a legend<NL> for level 3" 0.3 0
+!
+! Notes:
+!  * Add a space before text to get space between
+!  the case legend and the text
+!  * Waiting for polygon/nouser qualifier
+!
+!**************************************************************
+
+def sym ME_xpos1=`($VP_WIDTH) * ($1)/100 - ($PPL$XORG)`
+def sym ME_ypos1=`($VP_HEIGHT) * ($2)/100 - ($PPL$YORG)`
+def sym ME_xpos2=`($VP_WIDTH) * ($3)/100 - ($PPL$XORG)`
+def sym ME_ypos2=`($VP_HEIGHT) * ($4)/100 - ($PPL$YORG)`
+def sym ME_qualifiers=($05)
+def sym ME_textheight=($08%0.3%)
+def sym ME_textoffset=($09%`($ME_textheight)*2`%)
+
+! line made with plot command (waiting for qualifiers /nouser)
+ppl window,off
+let ME_xslope=((($XAXIS_MAX))-(($XAXIS_MIN)))/($PPL$XLEN)
+let ME_yslope=((($YAXIS_MAX))-(($YAXIS_MIN)))/($PPL$YLEN)
+
+let ME_x1=(($XAXIS_MIN))+ME_xslope*(($ME_xpos1))
+let ME_x2=(($XAXIS_MIN))+ME_xslope*(($ME_xpos2))
+let ME_y1=(($YAXIS_MIN))+ME_yslope*(($ME_ypos1))
+let ME_y2=(($YAXIS_MIN))+ME_yslope*(($ME_ypos2))
+
+polygon($ME_qualifiers) {`ME_x1`,`ME_x1`,`ME_x2`,`ME_x2`,`ME_x1`},{`ME_y1`,`ME_y2`,`ME_y2`,`ME_y1`,`ME_y1`},($06)
+
+go text_put ($03) `($02)+(($04)-($02))/2-($ME_textoffset)` "($07)" -1 ($ME_textheight) 
+
+! return to default
+ppl window,on
+
+!**************************************************************
+cancel var ME_*
+
+!**************************************************************
+set mode/last verify

@@ -1,0 +1,58 @@
+\cancel mode verify
+
+!#############################################
+let wind_angle=($01)
+let wind_strength=($02)
+def sym overlay=($03%0%)
+
+def sym filetmp=`spawn("echo windrose_tmp_$$.txt")`
+
+!#############################################
+! 16 directions = 22.5 °
+let delta=`360/16`
+! def_class called with modulo (5th argument)
+go def_class.jnl wind_angle `(-1)*delta/2` `360-delta/2` `delta` 1 wind_strength ($filetmp)
+
+!#############################################
+def sym nblines=`spawn("cat ($filetmp) | wc -l")`
+def axis/x=1:($nblines):1 vector_length
+def grid/x=vector_length vector_grid
+file/format=delimited/g=vector_grid/delim=" " "($filetmp)"
+
+!#############################################
+let windrose_labs={"E","ENE","NE","NNE","N","NNW","NW","WNW","W","WSW","SW","SSW","S","SSE","SE","ESE"}
+
+ppl color 6,70,70,70
+
+let ME_PI = atan(1.)*4.
+let ME_DEG2RAD = ME_PI/180.
+
+if `($overlay) ne 1` then 
+	plot/axes=(0,0,0,0)/hlim=-1.1:1.1/vlim=-1.1:1.1/nolab -1
+	let alpha=0
+	repeat/name=class/range=1:16:1 ( \
+		def sym class=`class` ;\
+		plot/line/color=6/dash/nolab/over/vs {0,`(1.1)*cos(alpha*ME_DEG2RAD)`},{0,`(1.1)*sin(alpha*ME_DEG2RAD)`} ;\ 
+		go world_text_put `(1.2)*cos(alpha*ME_DEG2RAD)` `(1.2)*sin(alpha*ME_DEG2RAD)` "@C00`1+6*mod(class,2)``windrose_labs[i=($class)]`" 0 `0.2+0.1*mod(class,2)` ;\
+		let alpha=`alpha+delta` ;\
+	)
+endif
+
+let alpha1=(i[i=1:16]-1)*delta
+let alpha=alpha1[g=vector_grid@ASN]
+let radius=v3/v3[i=@max]			! Normalized
+let windrose_xpos=radius*cos(alpha*ME_DEG2RAD)
+let windrose_ypos=radius*sin(alpha*ME_DEG2RAD)
+
+if `($overlay) ne 1` then 
+	polygon/line=1/fill/pal=gray_light/pat=lite_up_left_to_right/nolab/over windrose_xpos, windrose_ypos
+else
+	polygon/line=1/fill/pal=red/pat=lite_up_right_to_left/nolab/over windrose_xpos, windrose_ypos
+endif
+
+!#############################################
+cancel data ($filetmp)
+sp rm -f ($filetmp)
+
+!#############################################
+set mode/last verify

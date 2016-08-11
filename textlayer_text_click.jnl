@@ -1,0 +1,81 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Put a text at a position expressed as percentage 
+!  of width and height of the page
+!
+! Usage: go textlayer_text_click "text" [justification=0] [character height=0.3] [angle=0]
+!
+! Example: 
+!  yes? go page_new 1 1
+!  yes? set v 1
+!  yes? plot i[i=1:100]
+!  yes? go textlayer_new
+!  yes? go textlayer_text_click "text centered<NL>on several lines" 
+!
+! Notes:
+!  * Justification: -1 left, 0 center, +1 right 
+!  * Use @Cnnn (where nnn is the pen number) before the text
+!  to get a colored text
+!  For example "@C008This a red text and thick"
+!  * Pen numbers range from 1 to 18 and follow the formula:
+!          pen = 6 * (thickness - 1) + color
+!  with color = 1,2,3,4,5,6 = black,red,green,blue,cyan,magenta
+!  and thickness = 1,2,3
+!  * Add a blank before or after text to get spaces between
+!  the arrow and the text; to add blanks after the text, use
+!  the special character '_' (lowerscript)  
+!  yes? go textlayer_text_click "a text with blanks after     _"
+!  * Caracter height is expressed in cm (default=0.3)
+!  * Angle at which text is to be drawn  
+!  (0 degrees is at 3 o'clock and positive rotation 
+!  is counter clockwise.)
+!
+! Calls: 
+!
+! Author: Patrick Brockmann 
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.26 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+query/ignore $1%<Usage: go textlayer_text_click "text" [justification=0] [character height=0.3] [angle=0]%
+
+!**************************************************************
+
+say \! ************************************
+say \! Click where to put the text
+where
+def sym ME_xpos=`($XMOUSE)`
+def sym ME_ypos=`($YMOUSE)`
+
+def symb ME_text=$1
+def sym ME_just=$2%0%
+def sym ME_labheight=`$3%0.3%/2.54`   ! cm to inch
+def sym ME_angle=$4%0%
+
+! text single line
+label ($ME_xpos),($ME_ypos),($ME_just),($ME_angle),($ME_labheight), "($ME_text)"
+
+!**************************************************************
+def sym ME_xpos_per=`100*($ME_xpos),p=4`
+def sym ME_ypos_per=`100*($ME_ypos),p=4`
+
+say \! For non-interactive mode, use (please verify newline characters, should be <NL>)
+say go textlayer_text_put ($ME_xpos_per) ($ME_ypos_per) "($ME_text)" $2%" "% $3%" "% $4%" "% 
+say \! ************************************
+
+say/journal \! ************************************
+say/journal \! For non-interactive mode, use (please verify newline characters, should be <NL>)
+say/journal go textlayer_text_put ($ME_xpos_per) ($ME_ypos_per) "($ME_text)" $2%" "% $3%" "% $4%" "%
+say/journal \! ************************************
+
+!**************************************************************
+cancel sym ME_*
+
+!**************************************************************
+set mode/last verify

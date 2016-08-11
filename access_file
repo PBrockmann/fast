@@ -1,0 +1,28 @@
+#!/bin/ksh
+#
+# Author: Patrick Brockmann 
+# Contact: Patrick.Brockmann@ipsl.jussieu.fr 
+# $Date: 2009/05/14 15:03:59 $ 
+# $Name: FAST_608_1_3 $
+# $Revision: 1.1.1.25 $
+# History:
+# Modification:
+#
+
+#***************************************
+# Redirect standard error on standard output
+#      and redirect standar output on null
+exec 2>&1 1>/dev/null
+
+#***************************************
+ferret -server << EOS 
+
+use "$1"     
+exit            
+
+EOS
+
+#***************************************
+
+# clean
+rm -f ferret.jnl* > /dev/null 2>&1

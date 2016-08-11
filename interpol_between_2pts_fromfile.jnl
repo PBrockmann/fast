@@ -1,0 +1,30 @@
+\cancel mode verify
+
+!**************************************************************
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@cea.fr
+! $Date: $ 
+! $Name: $
+! $Revision: $
+!
+!**************************************************************
+
+def sym nblines=`{SPAWN:"cat ($01) | wc -l"}`
+
+file/var=xpos,ypos ($01)
+let mynbpts=($03%100%)
+
+sp rm -f b.txt
+repeat/name=np/range=1:`($nblines)-1` ( \
+	def sym n1=`np`; \
+	def sym n2=`np+1`; \
+	go interpol_between_2pts `xpos[i=($n1)]` `ypos[i=($n1)]` `xpos[i=($n2)]` `ypos[i=($n2)]` `mynbpts` ; \
+	if `($n2) eq ($nblines)` then ;\
+		list/file="($02)"/append/nohead/format=(2F15.3) xpts,ypts ; \
+	else ;\
+		list/file="($02)"/append/nohead/format=(2F15.3) xpts[i=1:`mynbpts-1`],ypts[i=1:`mynbpts-1`] ; \
+	endif ;\
+)
+
+!**************************************************************
+set mode/last verify

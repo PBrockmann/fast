@@ -1,0 +1,44 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Get top, bottom, left, right margins defined 
+!  in the current viewport
+!
+! Usage: go margins_get 
+!
+! Example: 
+!
+! Calls: 
+!
+! Author:
+! Contact: 
+!
+! Author: Patrick Brockmann 
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.26 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+def sym ME_tmargin = `100*(($vp_height)-(($ppl$ylen)+($ppl$yorg)))/($vp_height),p=4`
+def sym ME_bmargin = `100*($ppl$yorg)/($vp_height),p=4`
+def sym ME_lmargin = `100*($ppl$xorg)/($vp_width),p=4`
+def sym ME_rmargin = `100*(($vp_width)-(($ppl$xlen)+($ppl$xorg)))/($vp_width),p=4`
+
+!**************************************************************
+
+say \! ************************************
+say \! top_margin, bottom_margin, left_margin, right_margin are ($ME_tmargin),($ME_bmargin),($ME_lmargin),($ME_rmargin)
+say \! go margins_set ($ME_tmargin) ($ME_bmargin) ($ME_lmargin) ($ME_rmargin)
+say \! ************************************
+
+say/journal \! go margins_set ($ME_hmargin) ($ME_vmargin)
+
+!**************************************************************
+cancel sym ME_*
+
+!**************************************************************
+set mode/last verify

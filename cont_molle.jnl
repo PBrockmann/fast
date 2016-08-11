@@ -1,0 +1,98 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Plot continents file in molleweide projection  
+!
+! Usage: go cont_molle CENTRAL_MERIDIAN [PLOT qualifiers] [marg=20] [polygons file=earth_continents]
+!
+! Notes:
+!  * Pen numbers (/line=x qualifier) range from 1 to 18 and follow the formula:
+!          color_thickness = 6 * (thickness - 1) + color
+!  with color = 1,2,3,4,5,6 = black,red,green,blue,cyan,magenta
+!  and thickness = 1,2,3
+!  * polygons file = specify xxxxx to use an existing polygon file named polydouble_xxxxx.nc
+!                    default is earth_continents
+!
+! Calls: 
+!
+! Author: Patrick Brockmann 
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr  
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.27 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+query/ignore $1%<Usage: go cont_molle CENTRAL_MERIDIAN [PLOT qualifiers] [marg=20] [polygons file=earth_continents]%
+
+set data/save
+
+!**************************************************************
+define symbol ME_margin = $3%20%
+
+if $2"false|*>true" then
+        define symbol ME_QUALIFIERS = /nolab/vs/line=1/noaxes/hlimits=`-2*2^.5`:`2*2^.5`/vlimits=`-1*2^.5`:`2^.5`$2
+else
+        define symbol ME_QUALIFIERS = /nolab/vs/line=1/noaxes/hlimits=`-2*2^.5`:`2*2^.5`/vlimits=`-1*2^.5`:`2^.5`
+endif
+
+!**************************************************************
+! ratio width/height=2
+def sym ME_ratio = 2
+def sym ME_plot_width = `(1-($ME_margin)/100)*min(($vp_width),($ME_ratio)*($vp_height))`
+def sym ME_plot_height = `($ME_plot_width)/($ME_ratio)`
+ppl axlen ($ME_plot_width), ($ME_plot_height)
+ppl origin `(($vp_width)-($ME_plot_width))/2`,`(($vp_height)-($ME_plot_height))/2`
+
+!**************************************************************
+let ME_PI = atan(1.)*4.
+let ME_DEG2RAD = ME_PI/180.
+
+!**************************************************************
+use polydouble_$4%earth_continents%.nc
+
+let ME_CM = $1 
+
+let ME_LAMBDA0 = ME_CM
+let ME_LAMBDA = ME_Longitude
+let ME_PHI = ME_Latitude*ME_DEG2RAD
+
+let ME_Longitude = if (CONT_LON ge ME_CM-180 and CONT_LON le ME_CM+180) then CONT_LON
+let ME_Latitude = CONT_LAT
+
+let ME_X_PAGE = 2^.5*cos(ME_PHI)*(ME_LAMBDA-ME_LAMBDA0)/90.
+let ME_Y_PAGE = 2^.5*sin(ME_PHI)
+
+plot/set_up($ME_QUALIFIERS) ME_X_PAGE,ME_Y_PAGE
+
+ppl set ME_QUALIFIERS1 $edit(ME_QUALIFIERS,upcase)
+ppl set ME_ISOVER $locate("/OVER",ME_QUALIFIERS1)
+
+if `($ME_ISOVER) gt 0` then
+   ppl plot/line/over
+else
+   ppl plot
+endif
+
+cancel data polydouble_$4%earth_continents%.nc
+
+!**************************************************************
+let ME_radius=2^.5
+let ME_theta=I[I=1:101]*((2*ME_PI)/100)
+let ME_xellip=2.*ME_radius*COS(ME_theta)
+let ME_yellip=ME_radius*SIN(ME_theta)
+
+plot/vs/nolab/over($ME_QUALIFIERS) ME_xellip,ME_yellip
+
+!**************************************************************
+set data/restore
+
+!**************************************************************
+cancel variable ME_*
+cancel symbol ME_*
+
+!**************************************************************
+set mode/last verify
+

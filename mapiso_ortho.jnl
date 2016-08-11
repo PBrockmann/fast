@@ -1,0 +1,86 @@
+\cancel mode verify
+
+!**************************************************************
+! Description:
+!
+! Usage: go mapiso_ortho GRID CENTRAL_MERIDIAN CENTRAL_PARALLEL 2DVAR [mar=40] [SHADE or CONTOUR command + qualifiers] [polygons file] [polygons file] 
+!
+! Example:
+! yes? yes? go mapiso_ortho ORCA2.0 0 90 sosstsst[l=1] 30 shade/lev=20 earth_continents graticule_30s
+!
+! Notes:
+!
+! Calls:
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.8 $
+! History:
+! Modification:
+!
+!**************************************************************
+define symbol ME_GRID = $1
+let ME_CM = $2
+let ME_CP = $3
+define symbol ME_margin = $5%40%
+define symbol ME_cmd = $6%shade%/noaxis
+
+!**************************************************************
+let ME_VAR = $4
+
+if ($ME_GRID%|COARDS>true|*>false%) then
+	let ME_LON=x[g=ME_VAR]*y[g=ME_VAR]*0+x[g=ME_VAR]
+	let ME_LAT=x[g=ME_VAR]*y[g=ME_VAR]*0+y[g=ME_VAR]
+else
+	set data/save
+	use "($ME_GRID)_grid.nc"
+	set data/restore
+	let ME_LON=lon[d=($ME_GRID)_grid.nc]
+	let ME_LAT=lat[d=($ME_GRID)_grid.nc]
+endif
+
+go my_mp_orthographic ME_CM ME_CP ME_LON ME_LAT
+
+let ME_VAR1=ME_VAR*ME_mp_mask
+set variable/title="`ME_VAR,return=title`"/units="`ME_VAR,return=units`" ME_VAR1
+
+! ratio width/height=1
+def sym ME_ratio = 1 
+def sym ME_plot_width = `(1-($ME_margin)/100)*min(($vp_width),($ME_ratio)*($vp_height))`
+def sym ME_plot_height = `($ME_plot_width)/($ME_ratio)`
+ppl axlen ($ME_plot_width), ($ME_plot_height)
+ppl origin `(($vp_width)-($ME_plot_width))/2`,`(($vp_height)-($ME_plot_height))/2` 
+
+($ME_cmd) ME_VAR1, ME_x_page, ME_y_page
+
+if ($ME_GRID%|COARDS>false|*>true%) then
+	cancel data ($ME_GRID)_grid.nc
+endif
+
+!**************************************************************
+! overlay 1st polygons file 
+if $7%false|*>true% then
+   go cont_ortho `ME_CM` `ME_CP` /over `($ME_margin)` $7
+endif
+
+!**************************************************************
+! overlay 2nd polygons file 
+if $8%false|*>true% then
+   ! Redefinitions because script cont_ortho.jnl has cancelled 
+   ! all ME* variables and ME_* symbols
+   define symbol ME_margin = $5%40%    
+   let ME_CM = $2
+   let ME_CP = $3
+   go cont_ortho `ME_CM` `ME_CP` /over `($ME_margin)` $8
+endif
+
+!**************************************************************
+cancel variable ME_*
+cancel symbol ME_*
+
+!**************************************************************
+set mode/last verify
+
+

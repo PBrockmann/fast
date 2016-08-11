@@ -1,0 +1,64 @@
+#!/bin/ksh
+
+#**************************************************************
+# Description: Convert colors picked with XV from an image with
+#  the 2nd mouse button to ferret spectrum colors  
+#
+# Usage: cat file | colors_xv2ferret > file.spk 
+#
+# Options: 
+#
+# Example:
+#  From a click in an image with the 2nd mouse button with XV application, we pick 
+#  411, 166 =  89, 30,113  #591e71  (282  73  44 HSV)  [    0,    0]
+#  which give pixel values, measure distance, picks drawing color;
+#  this line is transformed to Ferret spectrum color, and we get 
+#  34 11 44
+#  which correspond to rrr ggg bbb values in range [0-100]
+#
+# Notes: 
+#  * XV application (http://www.trilon.com/xv/xv.html)
+#  * You can put a mapping key to do this transformation into VIM (http://www.vim.org/)
+#  Just add in your ~/.vimrc file the following line:
+#  :map <F4> :1,$!$FER_FAST/colors_xv2ferret<CR>	 
+#  Pick colors with mouse into a file and then press <F4>
+#  * Remove lines according to your choice of spectrum file (Percent,By_level,By_value) 
+#  * Adapt the fisrt column if By_value.
+#  * Repect followings specifications:
+#   - RGB_Mapping Percent  : percentage distance along the path in color space [0-100] 
+#   - RGB_Mapping By_level : color levels along the path in color space [1-nb_colors]
+#   - RGB_Mapping By_value : variable distance along the path in color space [val1-val2]  
+#
+# Calls: 
+#
+# Author: Patrick Brockmann
+# Contact: Patrick.Brockmann@ipsl.jussieu.fr
+# $Date: 2009/05/14 15:04:00 $
+# $Name: FAST_608_1_3 $
+# $Revision: 1.1.1.26 $
+# History:
+# Modification:
+#
+#**************************************************************
+
+
+tempfile=colors_xv2ferret_$$
+
+tee $tempfile > /dev/null 2>&1
+
+nblines=`cat $tempfile | wc -l` 
+
+#----------------------------
+echo RGB_Mapping Percent 
+cat $tempfile | cut -c 13-23 | LC_ALL=C awk -F, "{printf (\"%5.1f %5.1f %5.1f %5.1f\n\", (NR-1)*100/($nblines-1), 100*\$1/255, 100*\$2/255, 100*\$3/255)}" 
+
+#----------------------------
+echo RGB_Mapping By_level
+cat $tempfile | cut -c 13-23 | LC_ALL=C awk -F, "{printf (\"%5.1f %5.1f %5.1f %5.1f\n\", NR, 100*\$1/255, 100*\$2/255, 100*\$3/255)}" 
+
+#----------------------------
+echo RGB_Mapping By_value 
+cat $tempfile | cut -c 13-23 | LC_ALL=C awk -F, "{printf (\"%5.1f %5.1f %5.1f %5.1f\n\", 0, 100*\$1/255, 100*\$2/255, 100*\$3/255)}" 
+
+rm -f $tempfile > /dev/null 2>&1
+

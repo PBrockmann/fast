@@ -1,0 +1,195 @@
+#!/bin/ksh 
+#
+# Author: Patrick Brockmann
+# Contact: Patrick.Brockmann@ipsl.jussieu.fr
+# $Date: 2009/05/14 15:04:00 $
+# $Name: FAST_608_1_3 $
+# $Revision: 1.1.1.23 $
+# History:
+# Modification:
+#
+
+#---------------------------------------------
+quiet=0
+outputfile=pdf2pdf_$$
+options="\\includepdfmerge[scale=0.95,delta=10mm 10mm,landscape=false,angle=0,nup=1x2,link,linkfit=fitv]"
+
+#---------------------------------------------
+while [ $# -ne 0 ]
+do
+        case $1 in
+        -h|--help|-help)
+                echo "----------------------------------------------------------------------------"
+                echo "Usage: pdf2pdf [-h] [-l] [-q] [-o outputfile] [-p package_options]"
+                echo "         file.pdf [file.pdf ...]"
+                echo
+                echo "Description:"
+                echo "   pdf2pdf will help you to merge pdf documents (single or multipage)"
+                echo "   as a single document with bookmarks."
+                echo "   pdf2pdf is a shell script based on pdflatex and the pdfpages package." 
+                echo "      pdflatex: http://www.tug.org/teTeX/"
+                echo "      pdfpages: http://www.ctan.org/tex-archive/macros/latex/contrib/supported/"
+                echo "                Copyright (C) 2001 Andreas MATTHIAS (amat@kabsi.at)" 
+                echo "   Result is a multipage pdf file and a tex file which can be"
+                echo "   modified and re-used with pdflatex command." 
+                echo "   Bookmarks of the result multipage document are built using the"
+                echo "   first line of the info file (extension .info) if found, or"
+                echo "   by default using the name of the input pdf file without extension."
+                echo
+                echo "Arguments:"
+                echo "   file.pdf: Pdf files to merge are read from command-line."
+                echo "             All the pages from each pdf files will be inserted." 
+                echo
+                echo "Options:"
+                echo "   -h, --help, -help"
+                echo "       Print this manual."
+                echo
+                echo "   -q, --quiet"
+                echo "       Nothing is printed on standard output."
+                echo
+                echo "   -l, --landscape"
+                echo "       By default, logical pages (from pdf documents) are merged on a"
+                echo "       physical page in portrait orientation with a rotation of 90 degrees"
+                echo "       clockwise. If option -l specified then physical page is oriented in"
+                echo "       landscape." 
+                echo
+                echo "   -o, --output file"
+                echo "       The file specified will be used as output."
+                echo "       Default is pdf2pdf_#processusnumber."
+                echo
+                echo "   -p, --package options"
+                echo "       Default options choosen from pdfpages package are:"
+                echo "       scale=0.95,delta=10mm 10mm,landscape=false,angle=90,nup=1x2,link,linkfit=fitv" 
+                echo "       If specified then -l option is not considered."
+                echo "       Refer to the documentation of the package for further informations" 
+                echo "       (acroread \$FER_FAST/pdfpages.pdf)." 
+                echo
+                echo "Example:"
+                echo "   pdf2pdf -o example atlas_7764/s*/*pdf"
+                echo
+                echo "----------------------------------------------------------------------------"
+                exit ;;
+        -l|--landscape)
+                options="\\includepdfmerge[scale=0.95,delta=10mm 10mm,landscape=true,nup=1x2,link,linkfit=fitv]"
+                shift ;;
+        -o|--output)
+                outputfile=$2
+                shift 2 ;;
+        -p|--package)
+                options=\\includepdfmerge[$2]
+                shift 2 ;;
+        -q|--quiet)
+                quiet=1
+                shift ;;
+        -*)
+                pdf2pdf -h
+                exit ;;
+        *)
+                break ;;
+
+        esac
+done
+
+if [ $# -le 0 ] ; then
+        pdf2pdf -h
+        exit
+fi
+
+#---------------------------------------------
+pdf_files=""
+nb_pdf_files=0
+for file in $@ ; do
+    if echo $file | grep -si "\.pdf" > /dev/null ; then
+       pdf_files="$pdf_files $file"
+       let nb_pdf_files=nb_pdf_files+1
+    fi
+done
+
+if [ -z "$pdf_files" ] ; then
+   pdf2pdf -h
+   exit
+fi
+
+#---------------------------------------------
+#---------------------------------------------
+function PRINT {
+if [ $quiet -ne 1 ] ; then
+   echo "$1"
+fi;
+}
+
+#---------------------------------------------
+cat << END_HEADER_TEX > ${outputfile}.tex
+%%**********************************************
+%% Created by $USER
+%% `date`
+%% Author: Patrick Brockmann
+%% Contact: Patrick.Brockmann@ipsl.jussieu.fr
+%%**********************************************
+
+\documentclass[a4paper,12pt]{article}
+\usepackage[final]{pdfpages}
+\usepackage[bookmarksopen]{hyperref}
+\RequirePackage[babel,multidot,extendedchars,space]{grffile}
+
+\newcommand*{\bookmark}[3][0]{%
+  \pdfoutline user {<< /S /GoTo /D (#3) >>} count #1 {#2}}
+
+\begin{document}
+
+END_HEADER_TEX
+
+#---------------------------------------------
+echo ${options} >> ${outputfile}.tex
+echo { >> ${outputfile}.tex
+
+n_pdf_files=1
+for pdf_file in $pdf_files ; do
+   if [ $n_pdf_files -eq $nb_pdf_files ] ; then
+      echo ${pdf_file},- >> ${outputfile}.tex
+   else
+      echo ${pdf_file},-, >> ${outputfile}.tex
+   fi
+   let n_pdf_files=n_pdf_files+1
+done
+echo } >> ${outputfile}.tex
+
+for pdf_file in $pdf_files ; do
+   pdf_file_dirname=`dirname $pdf_file`
+   pdf_file_basename=`basename $pdf_file`
+   pdf_file_basefile=`echo $pdf_file_basename | cut -f 1 -d .`
+   pdf_file_info=${pdf_file_dirname}/${pdf_file_basefile}.info
+   if [[ -f ${pdf_file_info} && -s ${pdf_file_info} ]] ; then
+      bookmark_text=`head -n 1 ${pdf_file_info}` 
+      # Replace % by \% because % is interpreted as a special character in pdflatex
+      bookmark_text_parsed=`echo $bookmark_text | sed -e 's/%/\\\\%/g'`
+      # printf used because \b causes problem with echo command
+      printf '\\bookmark[0]'"{${bookmark_text_parsed}}{${pdf_file}.1}\n" >> ${outputfile}.tex
+   else
+      printf '\\bookmark[0]'"{${pdf_file_basefile}}{${pdf_file}.1}\n" >> ${outputfile}.tex
+   fi
+done
+
+#---------------------------------------------
+cat << END_FOOTER_TEX >> ${outputfile}.tex
+
+\end{document}
+\endinput
+
+END_FOOTER_TEX
+
+#---------------------------------------------
+PRINT "------------------------------------------------"
+PRINT "Merge pdf files with:"
+PRINT "pdflatex --interaction batchmode ${outputfile}.tex" 
+pdflatex --interaction batchmode ${outputfile}.tex > /dev/null 2>&1
+
+if [[ -f ${outputfile}.pdf && -s ${outputfile}.pdf ]] ; then
+      PRINT "--> ${outputfile}.pdf created"
+      rm -rf ${outputfile}.out ${outputfile}.aux ${outputfile}.log
+      PRINT "Read pdf file with:"
+      PRINT "    acroread ${outputfile}.pdf"
+else
+      PRINT "--> ERROR! ${outputfile}.pdf NOT created!"
+fi
+

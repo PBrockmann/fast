@@ -1,0 +1,29 @@
+
+
+!=====================================
+use "output_cpl/2L27_SE_2030_2039_output/2L27_SE_2030_2039_histmth.nc"
+
+!=====================================
+set w 1
+
+let var1=(u10m[l=1]^2+v10m[l=1]^2)^0.5
+
+! Handle modulo aspect to get continuous isolines
+go def_var_with_2_extra_points_on_xaxis.jnl var1 var2
+show grid var1
+show grid var2
+go mapiso_ortho COARDS 20 40 var2 30 fill/lev=(0,10,0.5)(INF)/nolab earth_continents graticule_30s
+
+!=====================================
+def sym vector_skip = 1
+def sym vector_length = 10   ! this vector norm will be represented by a 0.5 inch length vector
+def sym vector_title = m/s
+
+go COARDS_vectors_ortho_over.jnl 20 40 u10m[l=1] v10m[l=1] ($vector_skip) ($vector_length)
+
+!=====================================
+go text_put 50 90 "@AS(u10m[l=1]^2+v10m[l=1]^2)^0.5"
+
+go text_put 15 13 "($vector_length) ($vector_title)" -1
+go vector_key_put 15 12
+

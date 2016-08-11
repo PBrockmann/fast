@@ -1,0 +1,40 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Define color number (1 to 6) from 
+!              hexadecimal code on 6 digits
+!
+! Usage: go set_color_from_hexa color XXXXXX
+!
+! Example:
+!          yes ! Define color 2 with hexa color code ABFFE5
+!          yes? go set_color_from_hexa 2 ABFFE5 
+!          yes? plot/color=2/thick=2 sin(i[i=1:100]/10)
+! 
+! Note: - Applications such as xv or kcolorchooser will give you hexa color code. 
+!       - A nice one is http://www.dhtmlgoodies.com/scripts/color-schemer/color-schemer.html
+!       - Read also http://www.tagindex.net/color/color_wheel.html
+! 
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@cea.fr
+! $Date: 2009/05/14 15:04:00 $
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.3 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+!----------------------
+! Get RGB values on interval 0-100 from hexa color code
+go set_rgb_from_hexa ($02)
+
+!----------------------
+! Define 
+ppl color ($01),`RRR`,`GGG`,`BBB`
+
+!----------------------
+cancel var RRR,GGG,BBB
+
+!----------------------
+set mode/last verify

@@ -1,0 +1,59 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: 
+!
+! Usage: go graticule_make delta [number of duplication=simple] 
+!
+! Notes:
+!  * number of duplication set to simple define longitudes 
+!    from -180 to 180, used with orthographic projection
+!  * number of duplication set to double define longitudes 
+!    from -180 to 540, used with cylindric and molleweide projection
+!
+! Calls:
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.25 $
+! History:
+! Modification:
+! Todo: Changer pour le graticule 20 : 0,20,40,80
+!       Masquer pour les latitudes > 80 sauf lon0 et lon180
+!
+!**************************************************************
+
+query/ignore $1%<Usage: go graticule_make name%
+
+!**************************************************************
+define symbol duplication = $2%simple%
+
+if ($duplication%|simple>true|*>false%) then
+
+def sym file=polysimple_graticule_$1
+sp rm ($file).txt
+repeat/j=1:181:$1 (say create latitude=`j-91`; list/quiet/append/file=($file).txt/format=(E9.3,'     ',E9.3)/nohead i[i=1:361]-181,`j-91`; list/quiet/append/file=($file).txt/format=(E9.3,'     ',E9.3)/nohead -1E+34,-1E+34)
+repeat/j=1:361:$1 (say create longitude=`j-181`; list/quiet/append/file=($file).txt/format=(E9.3,'     ',E9.3)/nohead `j-181`,i[i=1:181]-91; list/quiet/append/file=($file).txt/format=(E9.3,'     ',E9.3)/nohead -1E+34,-1E+34)
+
+else
+
+def sym file=polydouble_graticule_$1
+sp rm ($file).txt
+repeat/j=1:181:$1 (say create latitude=`j-91`; list/quiet/append/file=($file).txt/format=(E9.3,'     ',E9.3)/nohead i[i=1:721]-181,`j-91`; list/quiet/append/file=($file).txt/format=(E9.3,'     ',E9.3)/nohead -1E+34,-1E+34)
+repeat/j=1:721:$1 (say create longitude=`j-181`; list/quiet/append/file=($file).txt/format=(E9.3,'     ',E9.3)/nohead `j-181`,i[i=1:181]-91; list/quiet/append/file=($file).txt/format=(E9.3,'     ',E9.3)/nohead -1E+34,-1E+34)
+
+endif
+
+def axis/x=1:100000:1 myxaxis
+def grid/x=myxaxis mygrid
+file/var=cont_lon,cont_lat/grid=mygrid ($file).txt
+save/file=($file).nc/clobber CONT_LON,CONT_LAT
+
+sp wc -l ($file).txt
+sp rm ($file).txt
+
+!**************************************************************
+set mode/last verify
+

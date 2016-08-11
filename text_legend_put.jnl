@@ -1,0 +1,71 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Put a text preceeding by a line (=legend) expressed as 
+!  percentage of width and height of the viewport over a plot  
+!
+! Usage: go text_legend_put xpos1 xpos2 ypos " text" [line color=1] [character height=0.3]
+!
+! Example:
+!  yes? plot i[i=1:100]
+!  yes? plot/over/nolab randu(i[i=1:100])*100
+!  yes? plot/over/nolab randn(i[i=1:100])*50
+!  yes? plot/over/nolab randn(i[i=1:100])*100
+!  yes? go text_legend_put 10 20 13 " text1" 1
+!  yes? go text_legend_put 10 20 10 " text2" 2 
+!  yes? go text_legend_put 10 20  7 " @C004text3" 4 
+!  yes? go text_legend_put 10 20  4 " text4" 3 
+!
+! Notes:
+!  * Line color are controlled with a pen number (see below)
+!  * Use @Cnnn (where nnn is the pen number) before the text
+!  to get a colored text
+!  For example "@C008This a red text and thick"
+!  * Pen numbers range from 1 to 18 and follow the formula:
+!          pen = 6 * (thickness - 1) + color
+!  with color = 1,2,3,4,5,6 = black,red,green,blue,cyan,magenta
+!  and thickness = 1,2,3
+!  * Add a blank before text to get a space between the line
+!  and the text
+!  * Caracter height is expressed in cm (default=0.3)  
+!
+! Calls: 
+!
+! Author: Patrick Brockmann 
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.27 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+query/ignore $1%<Usage: go text_legend_put xpos1 xpos2 ypos "text" [line color=1] [character height=0.3]%
+query/ignore $2%<Usage: go text_legend_put xpos1 xpos2 ypos "text" [line color=1] [character height=0.3]%
+query/ignore $3%<Usage: go text_legend_put xpos1 xpos2 ypos "text" [line color=1] [character height=0.3]%
+query/ignore $4%<Usage: go text_legend_put xpos1 xpos2 ypos "text" [line color=1] [character height=0.3]%
+
+def sym ME_xpos1=`($VP_WIDTH) * ($1)/100 - ($PPL$XORG)`
+def sym ME_xpos2=`($VP_WIDTH) * ($2)/100 - ($PPL$XORG)`
+def sym ME_ypos=`($VP_HEIGHT) * ($3)/100 - ($PPL$YORG)`
+def sym ME_linecolor=$5%1%
+def sym ME_labheight=`$6%0.3%/2.54`   ! cm to inch
+def sym ME_just=-1	! left 
+def sym ME_angle=0		
+
+! text
+label/nouser ($ME_xpos2),($ME_ypos),($ME_just),($ME_angle),($ME_labheight), "$4"
+
+! line
+ppl pen 1,($ME_linecolor)
+ppl aline/nouser 1,($ME_xpos1),($ME_ypos),($ME_xpos2),($ME_ypos)
+
+! Return to normal
+ppl pen 1,1
+
+!**************************************************************  
+cancel sym ME_*
+
+!**************************************************************
+set mode/last verify

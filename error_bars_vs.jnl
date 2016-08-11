@@ -1,0 +1,67 @@
+\cancel mode verify
+!**************************************************************
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@cea.fr
+! $Date: 2009/05/14 15:04:00 $
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.4 $
+! History: from error_bars.jnl
+! Modification:
+!
+!**************************************************************
+
+! Description: Overlay error bars on a plot/vs
+
+! Usage:              $1              $2 $3 $4     $5        
+! yes?  GO error_bars polygon_command v1 v2 errors [err_down]
+! $1 - the polygon command with qualifiers (eg POLY/LINE=2)
+! $2 - first variable
+! $3 - second variable
+! $4 - error values associated with points (or error limit above)
+! $5 - [optional] error limit below (if different that $4)
+
+! example
+!	yes? use levitus_climatology 
+!       yes? let sst_ave = temp[x=0:360@ave,y=-60:60@ave]
+!       yes? let sss_ave = salt[x=0:360@ave,y=-60:60@ave]
+!       yes? let sss_var  = salt[x=0:360@var,y=-60:60@var] 
+!
+!       yes? plot/vs/hlim=0:25/vlim=32:38 sst_ave,sss_ave
+!       yes? go error_bars_vs poly/line=2/nolab sst_ave sss_ave sss_var
+
+! argument check
+QUERY/IGNORE $1%<usage: yes? GO error_bars plot_command v1 v2 errors [err_down]%
+QUERY/IGNORE $2%<usage: yes? GO error_bars plot_command v1 v2 errors [err_down]%
+QUERY/IGNORE $3%<usage: yes? GO error_bars plot_command v1 v2 errors [err_down]%
+QUERY/IGNORE $4%<usage: yes? GO error_bars plot_command v1 v2 errors [err_down]%
+
+! save the input expressions into simple variable definitions
+LET/QUIET ERBx = ($2)
+LET/QUIET ERBy = ($3)
+LET/QUIET ERBerr_up = ($4)
+IF $5"0|*>1" THEN
+   LET/QUIET ERBerr_dn = ($5)
+ELSE
+   LET/QUIET ERBerr_dn = ERBerr_up
+ENDIF
+
+! determine the orientation of the data (and check that it is 1D)
+DEFINE SYMBOL ERBax `ERBy,return=shape`
+DEFINE SYMBOL ERBbar_dim ($ERBax"|PT>Z|X>Z|Y>Z|Z>Y|T>Z|<error: data is not a point or line")
+DEFINE SYMBOL ERBiax ($ERBax"|X>i|Y>j|Z>k|T>l")
+
+! determine the orientation for the error bar coordinates
+LET/QUIET ERBxbar = ($ERBbar_dim)SEQUENCE({0,0,-1,1,0})
+LET/QUIET ERBybar = ($ERBbar_dim)SEQUENCE({0,1, 1,1,1})
+
+! scale the "T" on the error bar based on the  to data ...
+! NOTE: define the symbol "IbeamWidth" to control the cross bar
+LET/QUIET ERBwidth = ($IbeamWidth".005") * (($XAXIS_MAX"1")-(($XAXIS_MIN"0")))
+
+$1/over/coord=($ERBbar_dim)) ERBx+ERBxbar*ERBwidth,ERBy+ERBerr_up*ERBybar
+$1/over/coord=($ERBbar_dim)/NOLABEL ERBx+ERBxbar*ERBwidth,ERBy-ERBerr_dn*ERBybar
+
+cancel symbol ERB*
+cancel variable ERB*
+set mode/last verify
+

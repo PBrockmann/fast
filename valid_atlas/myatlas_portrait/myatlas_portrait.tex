@@ -1,0 +1,36 @@
+%%**********************************************
+%% Created by brock
+%% jeudi 26 février 2015, 16:56:15 (UTC+0100)
+%% Author: Patrick Brockmann
+%% Contact: Patrick.Brockmann@ipsl.jussieu.fr
+%%**********************************************
+
+\documentclass[a4paper,12pt]{article}
+\usepackage[final]{pdfpages}
+\usepackage[bookmarksopen]{hyperref}
+\RequirePackage[babel,multidot,extendedchars,space]{grffile}
+
+\newcommand*{\bookmark}[3][0]{%
+  \pdfoutline user {<< /S /GoTo /D (#3) >>} count #1 {#2}}
+
+\begin{document}
+
+\includepdfmerge[scale=0.95,delta=10mm 10mm,landscape=false,angle=0,nup=1x2,link,linkfit=fitv]
+{
+tempmin_11064/tempmin.pdf,-,
+tempmax_11141/tempmax.pdf,-,
+tempk_11218/tempk.pdf,-,
+saltmin_11485/saltmin.pdf,-,
+saltmax_11562/saltmax.pdf,-,
+saltk_11639/saltk.pdf,-
+}
+\bookmark[0]{Temperature minimum}{tempmin_11064/tempmin.pdf.1}
+\bookmark[0]{Temperature maximum}{tempmax_11141/tempmax.pdf.1}
+\bookmark[0]{Temperature at different depth}{tempk_11218/tempk.pdf.1}
+\bookmark[0]{Salinity minimum}{saltmin_11485/saltmin.pdf.1}
+\bookmark[0]{Salinity maximum}{saltmax_11562/saltmax.pdf.1}
+\bookmark[0]{Salinity at different depth}{saltk_11639/saltk.pdf.1}
+
+\end{document}
+\endinput
+

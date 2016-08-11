@@ -1,0 +1,73 @@
+\CANCEL MODE VERIFY
+!**************************************************************
+! Description:
+!
+! Usage: GO use_and_define symbolname "/directory/file.txt"
+!     will define a new symbol named symbolname set to file.txt
+!     and use the file "/directory/file.txt"
+!
+! Examples:
+!   yes? GO use_and_define dera    ERA40.SE.PL.des
+!   yes? GO use_and_define dgridT  $DMFDIR/IGCM_OUT/IPSLCM4_v2/TST13/OCE/Output/MO/TST13_19091201_19091230_1M_grid_W.nc
+! 
+!! Notes:
+!
+! Calls: none, so far
+!
+!**************************************************************
+
+!QUERY/IGNORE $1%<Usage: GO use_and_define symbolname "[/directory/]file.txt"%
+!QUERY/IGNORE $2%<Usage: GO use_and_define symbolname "[/directory/]file.txt"%
+
+!**************************************************************
+
+DEFINE SYMBOL MON_sym  "$1"
+DEFINE SYMBOL MON_file "$2"
+
+! -------------------------------------------------------------
+! Get basename
+
+LET v_MON_file_1 = "($MON_file)"
+
+LET p_sla = `STRRINDEX ( v_MON_file_1, "/") `
+LET p_len = `STRLEN    ( v_MON_file_1) `
+
+LET v_MON_file_2 = "`SUBSTRING (v_MON_file_1, p_sla+1, p_len)`"
+
+! -------------------------------------------------------------
+! Remove suffix .des or .nc
+
+LET p_nc =  `STRINDEX ( v_MON_file_2, ".nc")  `
+LET p_des = `STRINDEX ( v_MON_file_2, ".des") `
+
+IF `p_nc EQ 0 AND p_des EQ 0` THEN
+   DEFINE SYMBOL MON_file_3 `v_MON_file_2`
+ELSE
+   IF `p_nc  GT 0` THEN
+      DEFINE SYMBOL MON_file_3 `SUBSTRING (v_MON_file_2, 1, p_nc-1)`
+      DEFINE SYMBOL MON_form "/FORM=CDF"
+   ENDIF
+   IF `p_des GT 0` THEN
+      DEFINE SYMBOL MON_file_3 `SUBSTRING (v_MON_file_2, 1, p_des-1)`
+   ENDIF
+ENDIF
+
+! -------------------------------------------------------------
+! Set data and define symbol
+
+SET DATA($MON_form) "($MON_file)"
+
+DEFINE SYMBOL "($MON_sym)" "($MON_file_3)"
+
+SAY "Symbol defined : ($MON_sym) = ($MON_file_3)"
+
+
+!**************************************************************	
+! Cleaning
+
+CANCEL SYMBOL MON_*
+CANCEL VARIABLE v_MON_*
+
+!**************************************************************
+SET MODE/LAST VERIFY
+

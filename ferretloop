@@ -1,0 +1,524 @@
+#!/bin/ksh
+#
+# Author: Patrick Brockmann 
+# Contact: Patrick.Brockmann@ipsl.jussieu.fr 
+# $Date: 2009/05/14 15:04:00 $ 
+# $Name: FAST_608_1_3 $
+# $Revision: 1.1.1.27 $
+# History:
+# Modification:
+#
+
+#---------------------------------------------
+init_dir=`pwd`
+export FER_GO="$init_dir $FER_GO"
+export FER_DATA="$init_dir $FER_DATA"
+export FER_PALETTE="$init_dir $FER_PALETTE"
+export FER_EXTERNAL_FUNCTIONS="$init_dir $FER_EXTERNAL_FUNCTIONS"
+
+#---------------------------------------------
+trap '\
+echo "------------------------------------------------"; \
+echo "ferretloop interrupted!"; \
+echo "------------------------------------------------"; \
+exit' 2 
+
+#---------------------------------------------
+stdin=0
+debug=0
+quiet=0
+check=0
+keep=0
+noexec=0
+pdf=0
+outputdir=ferretloop_$$
+outputfile=ferretloop
+sloop_start=1
+sloop_end=1
+sloop_delta=1
+sloop_format=%d
+info_option=0
+ps2gif_option="-g cx800"
+ps2pdf_option=""
+merge_delay=150
+
+#---------------------------------------------
+while [ $# -ne 0 ] 
+do
+        case $1 in 
+        -)     
+		stdin=1
+                shift ;;
+        -d|--debug)     
+		debug=1
+                shift ;;
+	-q|--quiet)
+		quiet=1
+                shift ;;
+	-n|--noexec)
+		noexec=1
+                shift ;;
+        -k|--keep)
+                keep=1
+                shift ;;
+	-c|--check)
+		check=1
+                shift ;;
+	-p|--pdf)
+		pdf=1
+                shift ;;
+	-o|--output)
+		outputdir=$2_$$
+		outputfile=$2
+                shift 2 ;;
+	-i|--info)
+		info_option=1
+		info=$2
+                shift 2 ;;
+	-r|--ref)
+		reference_file=$2
+                shift 2 ;;
+	-s|--sloop)    
+		sloop_start=`echo $2 | cut -d: -f1`                 
+		sloop_end=`echo $2 | cut -d: -f2`                 
+		sloop_delta=`echo $2 | cut -d: -f3`       
+                if [[ -z "$sloop_start" || -z "$sloop_end" || -z "$sloop_delta" ]] ; then
+	           ferretloop -h 
+		   exit
+                fi
+                shift 2 ;;
+	-f|--format_sloop)
+		sloop_format=$2
+                shift 2 ;;
+	-l|--landscape)
+		ps2gif_option="-g 800xc"
+		ps2pdf_option="-l"
+                shift 1 ;;
+	--ps2gif_option)
+		ps2gif_option="$2"
+                shift 2 ;;
+        -h|--help|-help)  
+		echo "----------------------------------------------------------------------------"
+        	echo "Usage: ferretloop [-] [-h] [-q] [-d] [-k] [-c] [-n] [-o directory_name]"
+        	echo "         [-s start:end:delta] [-f sloop_format] [-i info_text] [-r reference_file]"
+        	echo "         [-l] [--ps2gif_option \"option\"]"
+                echo "         ferret_script 'ferret_script_args'"
+                echo
+                echo "Description:"
+                echo "   ferretloop will help you to perform a loop on a ferret_script."
+                echo "   ferretloop is a shell script which loops the execution of"
+                echo "   a ferret_script following a loop definition."
+                echo "   If files are specified on standard input, ferretloop will"
+                echo "   also perfom the loop over each file."
+                echo "   Result output is a directory (ferretloop_#processusnumber) with"
+                echo "   a multiframe gif file and if --pdf option specified a multipage pdf"
+                echo "   file."
+                echo "   If error occured, the output directory will contain all"
+                echo "   prepared script files (*jnl), output execution files (*stdout),"
+                echo "   produced ps and gif files." 
+                echo "   Input files can be indicated on standard input either from:" 
+                echo "   - a file list:"
+                echo "       ferretloop - ferret_script 'ferret_script_args' < file_list"
+                echo "   - output of a command:"
+                echo "       cat list_file | ferretloop - ferret_script 'ferret_script_args'"
+                echo "       echo /dir/*.nc | ferretloop - ferret_script 'ferret_script_args'"
+                echo
+                echo "Arguments:"
+                echo "   ferret_script: Name of the ferret script"
+                echo "                  (use preferably full pathname or environment variable)."
+                echo
+                echo "   ferret_script_args: Arguments of the ferret script"
+                echo "                       (use single quoting ' to be able to include"
+                echo "                       special characters like \",[,])."
+                echo
+                echo "Options:"
+                echo "   -h, --help, -help"
+                echo "       Print this manual."
+                echo
+                echo "   -p, --pdf"
+                echo "       pdf files are produced and convert to a multipage pdf file."
+                echo
+                echo "   -q, --quiet"
+                echo "       Nothing is printed on standard output."
+                echo
+                echo "   -o, --output directory_name"
+                echo "       The name of the directory specified will be used as output directory."
+                echo "       Default is ferretloop_#processusnumber."
+                echo "       Specify a local directory name and NOT a pathname directory."
+                echo
+                echo "   -d, --debug"
+                echo "       ferret output are printed on standard output"
+                echo "       and journal, meta files are not deleted."
+                echo
+                echo "   -n, --noexec"
+                echo "       Prepare ferret script files, no execution."
+                echo
+                echo "   -c, --check"
+                echo "       Check if ferret can access to files"
+                echo "       and prepare ferret script files."
+                echo
+                echo "   -k, --keep"
+                echo "       Keep ps files, no convertion and merge."
+                echo
+                echo "   -i, --info text"
+                echo "       Put a information text in a file with .info as extension."
+                echo "       This information will be used as bookmark and list item"
+                echo "       by pdf2pdf andf indexhtml scripts."   
+                echo
+                echo "   -r, --ref file"
+                echo "       This option allow you to specify a reference file"
+                echo "       and will be used when parsing arguments to replace"
+		echo "       the string \"referencefile\"."
+                echo
+                echo "   -s, --sloop start:end:delta"
+                echo "       This option specifies the script loop definition."
+                echo "       start:end:delta must be integers separated by colons."
+                echo "       The string \"sloop\" (script loop) can be specified in"
+                echo "       the ferret_script_args and will take values from"
+                echo "       start to end by step of delta."
+                echo "       If not specified, the script is repeat only once"
+                echo "       and sloop will be equal to 1."
+                echo
+                echo "   -f, --format_sloop format"
+                echo "       This option controls the format of the sloop counter."
+                echo "       Format must be defined according as in C echo function."
+                echo "       Default is %d. %02d will define sloop as: 01,02,03..."
+                echo "       %04d will define sloop as: 0001,0002,0003..."
+                echo
+                echo "   --ps2gif_option \"options\""
+                echo '       Default ps2gif_option is "-g cx800"'
+                echo
+                echo "   -l, --landscape"
+                echo '       Option for ps2gif is set to "-g 800xc" when this option is used'
+                echo '       Option for ps2pdf is set to "-l" when this option is used'
+                echo
+                echo "   -"
+                echo "       ferretloop reads standard input and loops the execution"
+                echo "       of the ferret_script over the number of filenames read."
+                echo "       The string \"inputfile\" (input file) must be specified in"
+                echo "       the ferret_script_args to take the value of the input file(s)."
+                echo "       The string \"inputfile_nb\" (input file number) must be specified in"
+                echo "       the ferret_script_args and will take the value of"
+                echo "       the current number of input file(s)."
+                echo
+                echo "Examples:" 
+                echo "   * Considering that ferret_script is a ferret script which"
+                echo "     can be run as yes? go ferret_script"	
+                echo "       ferretloop ferret_script ' '"
+                echo "     will perform the ferret_script and produce a gif image."   
+                echo
+                echo "   * Considering that ferret_script is a ferret script which"
+                echo "     can be run as yes? go ferret_script var[l=2]"	
+                echo "       ferretloop --sloop 1:12:3 ferret_script 'var[l=sloop]'"
+                echo "     will perform the ferret_script following l=1,4,7,10 and produce a gif image."
+                echo
+                echo "   * Considering that ferret_script is a ferret script which"
+                echo "     can be run as yes? go ferret_script file var[l=2]"	
+                echo "       echo /dir/*nc | ferretloop - --sloop 1:12:3 ferret_script 'inputfile var[l=sloop]'"
+                echo "     will perform the ferret_script over the netcdf files from directory dir"
+                echo "     and over each file following l=1,4,7,10 and produce a gif image."
+                echo
+                echo "Notes:"
+                echo "   If input files are netcdf files then their access are checked."
+                echo "   DODS URL access are checked 3 times before give up." 
+                echo
+		echo "----------------------------------------------------------------------------"
+                exit ;;
+        -*)
+                ferretloop -h
+                exit ;;
+        *)
+		break ;;  
+        esac
+done
+
+if [ $# -ne 2 ] ; then
+	ferretloop -h 
+        exit
+fi
+
+#---------------------------------------------
+#---------------------------------------------
+function PRINT {
+echo "$1" >> ${outputfile}.stdout
+if [ $quiet -ne 1 ] ; then
+   echo "$1" 
+fi; 
+}
+
+#---------------------------------------------
+#---------------------------------------------
+function TRACE {
+if [ $debug -ne 1 ] ; then 
+   rm -rf $* > /dev/null 2>&1
+fi; 
+}
+
+#---------------------------------------------
+#---------------------------------------------
+function ACTION {
+sloop_counter=$sloop_start
+
+while [ $sloop_counter -le $sloop_end ] ; do
+
+#-----------------------
+input_file_nb_str=`printf "%06d.%06d" $input_file_nb $sloop_counter`
+sloop_counter_str=`printf "$sloop_format" $sloop_counter`
+
+ferret_script_arg_parsed=`echo $ferret_script_arg | sed -e "s#sloop#$sloop_counter_str#g" -e "s#inputfile_nb#$input_file_nb#g" -e "s#inputfile#$input_file#g" -e "s#referencefile#$reference_file#g"`
+
+PRINT "    Script loop: $sloop_counter"
+PRINT "        yes? go $ferret_script_name $ferret_script_arg_parsed"
+
+#-----------------------
+let sloop_counter=sloop_counter+sloop_delta
+
+#-----------------------
+ferret_jnl=${outputfile}_${input_file_nb_str}.jnl
+ferret_stdout=${outputfile}_${input_file_nb_str}.stdout
+file_ps=${outputfile}_${input_file_nb_str}.ps
+
+#~~~~~~~~~~~~~~~~~~~~~~~
+cat << END_SCRIPT > $ferret_jnl
+go "$ferret_script_name" $ferret_script_arg_parsed
+exit
+END_SCRIPT
+PRINT "            $ferret_jnl prepared"
+#~~~~~~~~~~~~~~~~~~~~~~~
+
+#-----------------------
+if [[ $check -eq 1 || $noexec -eq 1 ]] ; then 
+   continue 
+fi
+
+#-----------------------
+if [ $access_input_file_status -eq 0 ] ; then
+   merge_ps_files=0
+   merge_gif_files=0
+   PRINT "            Skip execution of $ferret_jnl"
+   continue
+fi
+
+#-----------------------
+PRINT "            $ferret_jnl running"
+(ferret -server -batch $file_ps < $ferret_jnl) > $ferret_stdout 2>&1
+if [[ ! -f core && -f $file_ps && -s $file_ps ]] ; then
+   let output_file_nb_ps=output_file_nb_ps+1 
+   PRINT "            --> $file_ps created" 
+   TRACE $ferret_stdout
+else
+   merge_ps_files=0
+   merge_gif_files=0
+   PRINT "            --> ERROR! $file_ps NOT created!" 
+   TRACE core
+fi
+
+done
+}
+
+#---------------------------------------------
+#---------------------------------------------
+ferret_script_name="$1"
+ferret_script_arg="$2"
+input_file_nb=0
+input_file_nb_ok=0
+output_file_nb_gif=0
+output_file_nb_ps=0
+access_input_file_nb_limit=3
+access_input_file_time_wait=30
+access_input_file_status=1
+merge_ps_files=1
+merge_gif_files=1
+date_start=`date`
+
+#---------------------------------------------
+mkdir ${outputdir} 
+cd ${outputdir}
+PRINT " "
+PRINT "VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV"
+PRINT "------------------------------------------------" 
+PRINT "ferretloop directory output: ${outputdir}" 
+PRINT "------------------------------------------------" 
+
+#---------------------------------------------
+PRINT "ferretloop $ferret_script_name '$ferret_script_arg'" 
+
+#---------------------------------------------
+if [ $stdin -eq 1 ] ; then 
+#***********************
+while read input_files ; do
+for input_file in $input_files; do
+
+#-----------------------
+let input_file_nb=input_file_nb+1 
+
+if [ $noexec -eq 0 ] ; then
+#-----------------------
+access_input_file_nb=1
+access_input_file_status=0
+
+PRINT "------------------------------------------------" 
+PRINT "Input file number: $input_file_nb"
+PRINT "Input file: $input_file"
+
+#-----------------------
+# test access only for netcdf files (extension .nc)
+if echo $input_file | grep -si "\.nc" > /dev/null ; then
+
+PRINT "--> Try to access to file"
+while [ $access_input_file_nb -le $access_input_file_nb_limit ] ; do
+if access_file $input_file | grep -si "non-existent or not on line" > /dev/null ; then
+   PRINT "--> ERROR! Cannot open file! Trial $access_input_file_nb"
+   if [ $access_input_file_nb -lt $access_input_file_nb_limit ] ; then 
+      PRINT "--> Wait ${access_input_file_time_wait}s before next trial"
+      sleep $access_input_file_time_wait
+   fi
+else
+   PRINT "--> File accessible"
+   access_input_file_status=1
+   let input_file_nb_ok=input_file_nb_ok+1 
+   break
+fi
+let access_input_file_nb=access_input_file_nb+1
+done
+
+else
+let input_file_nb_ok=input_file_nb_ok+1 
+access_input_file_status=1
+fi
+
+fi
+
+#-----------------------
+ACTION
+
+done
+done
+#***********************
+else
+#***********************
+input_file=inputfile
+ACTION
+#***********************
+fi
+
+#---------------------------------------------
+TRACE ferret.jnl* *~ core 
+
+#---------------------------------------------
+PRINT "------------------------------------------------" 
+PRINT "Number of files to treat   : $input_file_nb" 
+PRINT "Number of files accessible : $input_file_nb_ok" 
+PRINT "Number of ps files created : $output_file_nb_ps" 
+
+if [ $output_file_nb_ps -eq 0 ] ; then
+   PRINT "------------------------------------------------"
+   PRINT "exit"
+   PRINT "------------------------------------------------" 
+   PRINT " "
+   exit  
+fi
+
+#---------------------------------------------
+if [[ $check -eq 1 || $noexec -eq 1 ]] ; then 
+   PRINT "------------------------------------------------" 
+   PRINT "ls -l ${outputdir}" 
+   PRINT "`ls -l`" 
+   PRINT "------------------------------------------------" 
+   PRINT "ferretloop directory output: ${outputdir}" 
+   PRINT "------------------------------------------------" 
+   PRINT " "
+   exit  
+fi
+
+#---------------------------------------------
+if [[ $merge_gif_files -eq 1 && $keep -ne 1 ]] ; then
+   PRINT "------------------------------------------------" 
+   PRINT "Convert ps files to gif images with:"
+   for ps_file in `ls ${outputfile}_*.ps` ; do
+        PRINT "    ps2gif $ps2gif_option $ps_file"
+	ps2gif $ps2gif_option $ps_file > /dev/null 2>&1
+   done
+   if [ `ls -1 ${outputfile}_*.gif | wc -l` -eq 1 ] ; then
+      PRINT "    mv ${outputfile}_*.gif ${outputfile}.gif"
+      mv ${outputfile}_*.gif ${outputfile}.gif
+   else
+      PRINT "Merge gif files with:"
+      PRINT "    convert -delay ${merge_delay} -loop 0 ${outputfile}_*.gif ${outputfile}.gif"
+      convert -delay ${merge_delay} -loop 0 ${outputfile}_*.gif ${outputfile}.gif > /dev/null 2>&1
+   fi
+   if [[ -f ${outputfile}.gif && -s ${outputfile}.gif ]] ; then
+      PRINT "--> ${outputfile}.gif created" 
+      TRACE ${outputfile}_*.gif 
+   else 
+      merge_gif_files=0 
+      PRINT "--> ERROR! ${outputfile}.gif NOT created!" 
+      TRACE core
+   fi
+fi
+
+#---------------------------------------------
+if [ $pdf -eq 1 ] ; then
+if [[ $merge_ps_files -eq 1 && $keep -ne 1 ]] ; then
+   PRINT "------------------------------------------------" 
+   PRINT "Convert ps files to a pdf file with:"
+   PRINT "    ps2pdf ${ps2pdf_option} -m ${outputfile}_*.ps ${outputfile}.pdf"
+   ps2pdf ${ps2pdf_option} -m ${outputfile}_*.ps ${outputfile}.pdf > /dev/null 2>&1
+
+   if [[ -f ${outputfile}.pdf && -s ${outputfile}.pdf ]] ; then
+      PRINT "--> ${outputfile}.pdf created"
+   else
+      merge_ps_files=0 
+      PRINT "--> ERROR! ${outputfile}.pdf NOT created!" 
+      TRACE core
+   fi
+fi
+fi
+
+#---------------------------------------------
+if [ $keep -ne 1 ] ; then
+   TRACE ${outputfile}_*.ps
+fi
+
+#---------------------------------------------
+if [ $info_option -ne 0 ] ; then 
+   echo "$info" > ${outputfile}.info
+fi
+
+#---------------------------------------------
+PRINT "------------------------------------------------" 
+PRINT "ls -l ${outputdir}" 
+PRINT "`ls -l`" 
+PRINT "------------------------------------------------" 
+PRINT "ferretloop started: $date_start"
+PRINT "ferretloop ended  : `date`"
+PRINT "------------------------------------------------" 
+PRINT "ferretloop directory output: ${outputdir}" 
+PRINT "------------------------------------------------" 
+
+#---------------------------------------------
+if [[ $merge_gif_files -eq 1 && $keep -ne 1 ]] ; then
+   PRINT "Anim multiframe gif file with:"
+   PRINT "    xanim ${outputdir}/${outputfile}.gif" 
+   PRINT "or  animate ${outputdir}/${outputfile}.gif" 
+else
+   PRINT "Merge gif files with:"
+   PRINT "    convert -delay ${merge_delay} -loop 0 ${outputdir}/${outputfile}_*.gif ${outputfile}.gif"
+   PRINT "Anim multiframe gif file with:"
+   PRINT "   xanim ${outputdir}/${outputfile}_*.gif" 
+   PRINT "or animate ${outputdir}/${outputfile}_*.gif" 
+fi
+
+if [ $pdf -eq 1 ] ; then
+if [[ $merge_ps_files -eq 1 && $keep -ne 1 ]] ; then
+   PRINT "Read pdf file with:"
+   PRINT "    acroread ${outputdir}/${outputfile}.pdf" 
+else
+   PRINT "Merge ps files and convert to a pdf file with:"
+   PRINT "    ps2pdf [-l] ${outputdir}/${outputdir}_*.ps ${outputdir}.pdf" 
+fi
+fi
+
+PRINT "------------------------------------------------" 
+PRINT " "
+

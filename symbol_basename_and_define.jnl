@@ -1,0 +1,53 @@
+\cancel mode verify
+
+!**************************************************************
+! Description:
+!
+! Usage: go symbol_basename_and_define symbolname "/directory/file.txt"
+!
+! Example:
+!   go symbol_basename_and_define symbolname "/directory/file.txt" 
+!   will define a new symbol named symbolname set to file.txt
+!
+! Notes:
+!   * query $n are commented because the command query does not accept quoting
+!    which is necessary to treat text with "/"
+!
+! Calls: go symbol_define_nbsubstring
+!        go symbol_replace_substring
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.25 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+!query/ignore $1%<Usage: go symbol_basename_and_define symbolname "/directory/file.txt"%
+!query/ignore $2%<Usage: go symbol_basename_and_define symbolname "/directory/file.txt"%
+
+ppl set ME_symbolname "$1"
+
+!**************************************************************
+
+ppl set ME_str "$2"
+ppl set ME_sstr "/"
+go symbol_define_nbsubstring 
+
+if `(($ME_nbsubstring) gt 0) and (($ME_poslastsubstring) ne ($ME_str_le))` then
+    ppl set ME_str_new $extract(`($ME_poslastsubstring)+1`,`($ME_str_le)-($ME_poslastsubstring)`,ME_str)
+else
+    ppl set ME_str_new "($ME_str)"
+endif
+
+ppl set ($ME_symbolname) "($ME_str_new)"
+say "New symbol defined: ($ME_symbolname)=($ME_str_new)"
+
+!**************************************************************
+cancel sym ME_*
+
+!**************************************************************
+set mode/last verify

@@ -1,0 +1,61 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Apres un ncdiff avec un fichier de reference
+!              on souhaite trouver les variables ou il y a une difference
+!              La sequence d'appel sera:
+!              $ ncdiff in_1.nc in_2.nc out.nc
+!              $ ferret -script detect_not_zero.jnl out.nc
+!              ou
+!              $ ferret -script detect_not_zero.jnl out.nc | grep ERROR
+!
+! Usage: $ ferret -script detect_not_zero.jnl file.nc
+!
+! Examples: $ ferret -script detect_not_zero.jnl /tmp/PATRICK/histrac_diff.nc
+!             pour verifier toutes les variables du fichier
+!             en ne considerant pas les variables de coordonnees (1 à 4)
+!
+!           $ ferret -script detect_not_zero.jnl /tmp/PATRICK/histrac_diff.nc 20 30
+!             pour verifier les variables de 20 a 30
+!             en ne considerant pas les variables de coordonnees (1 à 4)
+!
+! Calls:  - ncdump
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@cea.fr
+! $Date: 2009/05/14 15:04:00 $
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.5 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+!=======================================================================================
+let a0={SPAWN:"ncdump -c -h ($01)  | grep -i float | cut -f 1 -d '(' | cut -f 2 -d ' '"}
+let a1=xsequence(a0)
+
+! La verification commence a partir de la 5eme variable
+! car les variables 1:4 sont des axes (coordinate variables)
+def sym list_start=($02%5%)
+def sym list_end=($03%`a1,return=isize`%)
+
+say "############################################"
+say "File to check: ($01)"
+say "Number of variables to check: `($list_end)-($list_start)`"
+
+!=======================================================================================
+use "($01)"
+
+repeat/range=($list_start):($list_end)/name=f ( say "--------------------------------------------" ;\
+        let a2=a1[i=`f`] ; \
+        let var=`a2` ; \
+        let varmin=`var[i=@min,j=@min,k=@min,l=@min]` ;\
+        let varmax=`var[i=@max,j=@max,k=@max,l=@max]` ;\
+        if `varmin ne 0 and varmax ne 0` then ;\
+                say "ERROR: `a2` (min,max)=(`varmin`,`varmax`)" ;\
+        else ;\
+                say "OK   : `a2`" ;\
+        endif )
+
+!=======================================================================================

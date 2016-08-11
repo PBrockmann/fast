@@ -1,0 +1,181 @@
+\cancel mode verify
+
+!**************************************************************
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.9 $
+! 
+!**************************************************************
+
+! scattered_vectors.jnl
+! 4/94
+! updated 9/96 for Ferret V4.4 - use symbols to grab plot state
+
+! Description: Scattered vector plot from ASCII file: x,y,u,v
+
+! The final record of the file should be 0,0,0,0 (else the final vector
+! will not be plotted)
+
+! Usage:
+
+!	GO scattered_vectors filename haf_inch_value ["clock"] ["stick"]
+! 1 filename       - the ASCII fie containing the 4-tuple data
+! 2 haf_inch_value - the scale value - value of a 1/2 inch vector
+! 3 arrow center   - "clock" for clock-hand vectors or "centered" [default]
+! 4 arrow head     - "stick" for no head or "head" [default]
+
+! Example:
+!	see "centered_vectors.jnl" for a usage example
+
+! Note: This procedure will grab the plot state from PLOT+ so that plot state
+!	must already exist.  If this procedure is used to generate an overlay
+!	there will be no problem.  If this procedure is used to generate
+!	a new plot and the information in PLOT+ (PPL LISTSYM) is not
+!	applicable then the PLOT+ variables below must be defined before
+!	using this procedure:
+!	yes? PPL SET PPL$XLEN  (X axis length)
+!	yes? PPL SET PPL$YLEN  (Y axis length)
+!	yes? PPL SET PPL$XMIN  (X axis starting value)
+!	yes? PPL SET PPL$XMAX  (X axis maximum value)
+!	yes? PPL SET PPL$YMIN  (Y axis starting value)
+!	yes? PPL SET PPL$YMAX  (Y axis maximum value)
+
+! check for required filename and haf_inch_value and valid style
+QUERY/IGNORE $1%<Usage: GO scattered_vectors filename haf_inch_value ["clock"] ["stick"]%
+QUERY/IGNORE $2%<Usage: GO scattered_vectors filename haf_inch_value ["clock"] ["stick"]%
+QUERY/IGNORE $3%centered|centered|clock|center|<Usage: GO scattered_vectors filename haf_inch_value ["clock"] ["stick"]%
+QUERY/IGNORE $4%head|stick|head|<Usage: GO scattered_vectors filename haf_inch_value ["clock"] ["stick"]%
+
+! plot size and scale characteristics
+LET/QUIET ME_haf_inch_value = $2
+
+! choice of vector centering: see below
+LET/QUIET ME_clock=$3"0|centered>0|center>0|clock>1"
+
+! choice of whether to include  arrow heads
+LET/QUIET ME_arrow_head = $4"1|stick>0|head>1"
+
+! read the vector-quadruples in as a line of data 
+! (20480 pts max in default grid)
+SET DATA/save       ! to restore original data set
+FILE/VAR=ME_xp,ME_yp,ME_uvar,ME_vvar $1
+
+! replicate the points x 7 by regridding to an axis from 4/7 to n+3/7 by 1/7
+! then delete all except the middle point in each group of seven
+! then re-fill the other 6 by replication
+DEFINE AXIS/X=.57142857:10000:.14285714 ME_axtimes7  ! 4/7:big:1/7
+DEFINE GRID/X=ME_axtimes7 ME_gtimes7
+LET/QUIET ME_mid7mask = IF MOD(i[g=ME_gtimes7],7) EQ 4 THEN 1
+LET/QUIET ME_xp7_mid7   = ME_mid7mask * ME_xp[G=ME_gtimes7]
+LET/QUIET ME_yp7_mid7   = ME_mid7mask * ME_yp[G=ME_gtimes7]
+LET/QUIET ME_u7_mid7 = ME_mid7mask * ME_uvar[G=ME_gtimes7]
+LET/QUIET ME_v7_mid7 = ME_mid7mask * ME_vvar[G=ME_gtimes7]
+LET/QUIET ME_xp7   = ME_xp7_mid7[x=@FNR]
+LET/QUIET ME_yp7   = ME_yp7_mid7[x=@FNR]
+LET/QUIET ME_u7_9999 = ME_u7_mid7[x=@FNR]
+LET/QUIET ME_v7_9999 = ME_v7_mid7[x=@FNR]
+LET/QUIET ME_u7 = IF ME_u7_9999 NE (-9999) THEN ME_u7_9999 ! screen out REAL missing data
+LET/QUIET ME_v7 = IF ME_v7_9999 NE (-9999) THEN ME_v7_9999
+
+! capture the current scaling information about the plot
+! This block of code will define 4 variables {horiz,vert}_{inch,degree}_span
+LET/QUIET ME_horiz_inch_span = ($PPL$XLEN)
+LET/QUIET ME_vert_inch_span = ($PPL$YLEN)
+LET/QUIET ME_horiz_degree_span = ($XAXIS_MAX) - ($XAXIS_MIN)
+LET/QUIET ME_vert_degree_span  = ($YAXIS_MAX) - ($YAXIS_MIN)
+
+! Define the region "aros" to be the number of points x7
+DEFINE REGION/DEFAULT save
+CANCEL REGION/X
+LIST/QUIET/NOHEAD/APPEND/FORMAT=("DEFINE REGION/I=1:",1PG11.6," aros")/FILE=vector_commands.jnl (ME_xp[i=@ngd]-1)*7   ! -2 to skip blank records
+GO vector_commands.jnl
+SET REGION save     ! restore original region
+sp rm -f vector_commands.jnl     ! clean up
+
+! define the transformations to go from user units (e.g. cm/sec) to plot
+! coordinates (i.e. degrees) with inches as an intermediate
+! xscale is units/inch on the X axis
+! yscale is units/inch on the Y axis
+! rot_fact is the non-uniformity of scaling, yscale/xscale
+! arrow_scale is the requested scaling, inches/user unit
+! u,v, the components in user units; ui,vi, the components in inches
+! ud,vd, the components in degrees, then
+! we want:
+! 	EQN 1) arrow_scale*SQRT(u^2+v^2) = SQRT(ui^2+vi^2)
+! 	EQN 2) ui/vi = rot_fact * u/v
+! if we combine (1) and (2) letting ui=A*u and vi=B*v we get
+! 	B = arrow_scale * SQRT(1+(v/u)^2))/SQRT(rot_fact^2 * (v/u)^2)
+! 	A = rot_fact*B
+LET/QUIET ME_xscale = ME_horiz_degree_span / ME_horiz_inch_span
+LET/QUIET ME_yscale = ME_vert_degree_span / ME_vert_inch_span
+LET/QUIET ME_rot_fact = ME_yscale/ME_xscale
+LET/QUIET ME_arrow_scale = 0.5 / ME_haf_inch_value
+LET/QUIET ME_arrow_slope = ME_v7/ME_u7
+LET/QUIET ME_vcorectn = ME_arrow_scale*((1+ME_arrow_slope^2)/(ME_rot_fact^2+ME_arrow_slope^2))^0.5
+LET/QUIET ME_ucorectn = ME_rot_fact * ME_vcorectn
+LET/QUIET ME_ui7 = IF ME_u7 EQ 0 THEN 0 ELSE ME_ucorectn*ME_u7
+LET/QUIET ME_vi7 = IF ME_u7 EQ 0 THEN ME_arrow_scale*ME_v7 ELSE ME_vcorectn*ME_v7
+LET/QUIET ME_ud7 = ME_xscale * ME_ui7
+LET/QUIET ME_vd7 = ME_yscale * ME_vi7
+
+! define the size for the vector arrow heads
+! note: the variables arrow_head_len_{x,y} and arrow_head_wid_{r,l} define
+!       the sizes of the arrow heads relative to the vector length.  An
+! 	absolute size (in units of degrees) could be substituted
+LET/QUIET ME_arrow_head_len_x = 0.2 * ME_ui7
+LET/QUIET ME_arrow_head_len_y = 0.2 * ME_vi7
+LET/QUIET ME_arrow_head_wid_r = 0.1 * ME_vi7    ! half width
+LET/QUIET ME_arrow_head_wid_l = 0.1 * ME_ui7    ! half width
+
+! define the 7 points of each vector
+! P1 vector start point
+! P2 vector end point (arrow head end)
+! P3 pen up (missing)
+! P4 right limb of arrow head
+! P5 vector end point (repeated)
+! P6 left limb of arrow head
+! P7 pen up (missing)
+! clock-style   arrows have the shaft end      at the data point
+! compass-style arrows have the shaft midpoint at the data point
+LET/QUIET ME_arrow_start_x = IF ME_clock EQ 1 THEN ME_xp7/ME_xscale ELSE ME_xp7/ME_xscale - ME_ui7/2
+LET/QUIET ME_arrow_start_y = IF ME_clock EQ 1 THEN ME_yp7/ME_yscale ELSE ME_yp7/ME_yscale - ME_vi7/2
+LET/QUIET ME_arrow_end_x = ME_arrow_start_x + ME_ui7		! end point, P2&P5
+LET/QUIET ME_arrow_end_y = ME_arrow_start_y + ME_vi7		! end point, P2&P5
+LET/QUIET ME_arrow_left_x = IF (ME_arrow_head) THEN ME_arrow_end_x - ME_arrow_head_len_x - ME_arrow_head_wid_r  !P4
+LET/QUIET ME_arrow_left_y = ME_arrow_end_y - ME_arrow_head_len_y + ME_arrow_head_wid_l
+LET/QUIET ME_arrow_right_x = IF (ME_arrow_head) THEN ME_arrow_end_x - ME_arrow_head_len_x + ME_arrow_head_wid_r !P6
+LET/QUIET ME_arrow_right_y = ME_arrow_end_y - ME_arrow_head_len_y - ME_arrow_head_wid_l
+
+! create an ordered sequence of points for each vector with pen-up's included
+LET/QUIET ME_arrow_index = MOD(i[g=ME_gtimes7]-1,7) + 1
+LET/QUIET ME_ap1x = IF ME_arrow_index EQ 1 THEN ME_arrow_start_x
+LET/QUIET ME_ap2x = IF ME_arrow_index EQ 2 THEN ME_arrow_end_x
+LET/QUIET ME_ap4x = IF ME_arrow_index EQ 4 THEN ME_arrow_left_x
+LET/QUIET ME_ap5x = IF ME_arrow_index EQ 5 THEN ME_arrow_end_x
+LET/QUIET ME_ap6x = IF ME_arrow_index EQ 6 THEN ME_arrow_right_x
+LET/QUIET ME_arrow_x = MISSING(ME_ap1x,MISSING(ME_ap2x,MISSING(ME_ap4x,MISSING(ME_ap5x,ME_ap6x)))) * ME_xscale
+LET/QUIET ME_ap1y = IF ME_arrow_index EQ 1 THEN ME_arrow_start_y
+LET/QUIET ME_ap2y = IF ME_arrow_index EQ 2 THEN ME_arrow_end_y
+LET/QUIET ME_ap4y = IF ME_arrow_index EQ 4 THEN ME_arrow_left_y
+LET/QUIET ME_ap5y = IF ME_arrow_index EQ 5 THEN ME_arrow_end_y
+LET/QUIET ME_ap6y = IF ME_arrow_index EQ 6 THEN ME_arrow_right_y
+LET/QUIET ME_arrow_y = MISSING(ME_ap1y,MISSING(ME_ap2y,MISSING(ME_ap4y,MISSING(ME_ap5y,ME_ap6y)))) * ME_yscale
+
+! display the answer
+!SAY
+!SAY Variables are defined appropriately for a plot of
+!list/nohead/format=(8X,"X axis length = ",F5.2,";  Y axis length = ",F5.2) ME_horiz_inch_span,ME_vert_inch_span
+!list/nohead/format=(8X,"X data span = ",F7.2,";  Y data span = ",F7.2) ME_horiz_degree_span,ME_vert_degree_span
+! SAY Cut and hack this command for your custom vectors:
+! SAY  >> PLOT/VS/LINE/D=$1/@aros/OVERLAY ME_arrow_x,ME_arrow_y <<
+
+PLOT/VS/@AROS/LINE=1/OVERLAY/NOLABELS ME_arrow_x, ME_arrow_y
+
+cancel data $1
+cancel grid ME_gtimes7
+cancel axis ME_axtimes7
+
+set data/restore
+set mode/last verify

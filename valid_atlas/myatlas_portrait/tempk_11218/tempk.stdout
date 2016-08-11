@@ -1,0 +1,74 @@
+ 
+VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV
+------------------------------------------------
+ferretloop directory output: tempk_11218
+------------------------------------------------
+ferretloop script_landscape.jnl 'temp[k=sloop]'
+    Script loop: 1
+        yes? go script_landscape.jnl temp[k=1]
+            tempk_000000.000001.jnl prepared
+            tempk_000000.000001.jnl running
+            --> tempk_000000.000001.ps created
+    Script loop: 3
+        yes? go script_landscape.jnl temp[k=3]
+            tempk_000000.000003.jnl prepared
+            tempk_000000.000003.jnl running
+            --> tempk_000000.000003.ps created
+    Script loop: 5
+        yes? go script_landscape.jnl temp[k=5]
+            tempk_000000.000005.jnl prepared
+            tempk_000000.000005.jnl running
+            --> tempk_000000.000005.ps created
+    Script loop: 7
+        yes? go script_landscape.jnl temp[k=7]
+            tempk_000000.000007.jnl prepared
+            tempk_000000.000007.jnl running
+            --> tempk_000000.000007.ps created
+    Script loop: 9
+        yes? go script_landscape.jnl temp[k=9]
+            tempk_000000.000009.jnl prepared
+            tempk_000000.000009.jnl running
+            --> tempk_000000.000009.ps created
+------------------------------------------------
+Number of files to treat   : 0
+Number of files accessible : 0
+Number of ps files created : 5
+------------------------------------------------
+Convert ps files to gif images with:
+    ps2gif -g 800xc tempk_000000.000001.ps
+    ps2gif -g 800xc tempk_000000.000003.ps
+    ps2gif -g 800xc tempk_000000.000005.ps
+    ps2gif -g 800xc tempk_000000.000007.ps
+    ps2gif -g 800xc tempk_000000.000009.ps
+Merge gif files with:
+    convert -delay 150 -loop 0 tempk_*.gif tempk.gif
+--> tempk.gif created
+------------------------------------------------
+Convert ps files to a pdf file with:
+    ps2pdf -l -m tempk_*.ps tempk.pdf
+--> tempk.pdf created
+------------------------------------------------
+ls -l tempk_11218
+total 396
+-rw-r--r-- 1 brock brock     41 févr. 26 16:56 tempk_000000.000001.jnl
+-rw-r--r-- 1 brock brock     41 févr. 26 16:56 tempk_000000.000003.jnl
+-rw-r--r-- 1 brock brock     41 févr. 26 16:56 tempk_000000.000005.jnl
+-rw-r--r-- 1 brock brock     41 févr. 26 16:56 tempk_000000.000007.jnl
+-rw-r--r-- 1 brock brock     41 févr. 26 16:56 tempk_000000.000009.jnl
+-rw-r--r-- 1 brock brock 124002 févr. 26 16:56 tempk.gif
+-rw-r--r-- 1 brock brock     31 févr. 26 16:56 tempk.info
+-rw-r--r-- 1 brock brock 246111 févr. 26 16:56 tempk.pdf
+-rw-r--r-- 1 brock brock   2001 févr. 26 16:56 tempk.stdout
+------------------------------------------------
+ferretloop started: jeudi 26 février 2015, 16:56:01 (UTC+0100)
+ferretloop ended  : jeudi 26 février 2015, 16:56:07 (UTC+0100)
+------------------------------------------------
+ferretloop directory output: tempk_11218
+------------------------------------------------
+Anim multiframe gif file with:
+    xanim tempk_11218/tempk.gif
+or  animate tempk_11218/tempk.gif
+Read pdf file with:
+    acroread tempk_11218/tempk.pdf
+------------------------------------------------
+ 

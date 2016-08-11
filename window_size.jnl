@@ -1,0 +1,14 @@
+! Use to determine size of default window
+
+! ferret -gif -server < window_size.jnl
+! xv example.gif
+! xwininfo  
+
+plot i[i=1:10]
+
+! Not available in -gif -server mode ?
+!say ($ppl$xpixel) ($ppl$ypixel)
+
+frame/file=example.gif/format=gif
+
+exit 

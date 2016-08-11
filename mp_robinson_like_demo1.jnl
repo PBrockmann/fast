@@ -1,0 +1,39 @@
+
+!**************************************************************
+! Description: a demo for mp_robinson_like.jnl script
+!
+! Usage: go mp_robinson_like_demo
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@lsce.ipsl.fr
+! $Date: $ 
+! $Name: $
+! $Revision: $
+! History:
+! Modification:
+!
+!**************************************************************
+
+!==================================
+! color for graticule
+go set_color_from_hexa 5 BEBFC1
+! color for lineshore
+go set_color_from_hexa 6 31A3DC
+
+!==================================
+use levitus_climatology
+set grid temp
+go mp_robinson_like 0
+set region/x=-180:180/y=-90:90
+
+! mp_robinson projection has a ratio close to 0.5
+go ratio_set 2 15
+fill/noaxis/hlim=-3:3/vlim=-1.5:1.5 temp[k=1], x_page, y_page
+
+!==================================
+!go mp_robinson_like_border /line/color=1/thick=2
+go mp_robinson_like_border
+
+!==================================
+go mp_land
+go mp_graticule "" "" 30 "" "" 30 5

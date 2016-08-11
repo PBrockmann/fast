@@ -1,0 +1,29 @@
+
+!#############################################
+uselev 
+
+!#############################################
+def sym filetmp=`spawn("echo class_tmp_$$.txt")`
+
+go def_class.jnl temp[k=1] 0 28 2 0 salt[k=1] ($filetmp)
+
+!#############################################
+def sym nblines=`{SPAWN:"cat ($filetmp) | wc -l"}`
+def axis/x=1:($nblines):1 vector_length
+def grid/x=vector_length vector_grid
+file/format=DELIMITED/g=vector_grid/delim=" " "($filetmp)"
+
+!#############################################
+ppl color 6,70,70,70
+
+! to set ($YAXIS_MIN) and ($YAXIS_MAX) symbols
+plot/sym v3+v4^0.5, v3-v4^0.5
+
+plot/grat=(dash,color=6)/set_up/sym=7/vlim=($YAXIS_MIN):($YAXIS_MAX)/hlim=0:`($nblines)+1`/nolab v3
+ppl xlab, "Class"
+ppl plot
+go error_bars polygon/color=blue/nolab v3 v4^0.5+v3*0
+
+!#############################################
+cancel data ($filetmp)
+sp rm -f ($filetmp)

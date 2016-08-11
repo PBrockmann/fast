@@ -1,0 +1,72 @@
+#!/bin/ksh
+#
+# Author: Patrick Brockmann
+# Contact: Patrick.Brockmann@ipsl.jussieu.fr
+# $Date: 2009/05/14 15:03:59 $
+# $Name: FAST_608_1_3 $
+# $Revision: 1.1.1.14 $
+# History:
+# Modification:
+#
+# See Ferret FAQ = Changing line thickness in PostScript files
+# http://ferret.wrc.noaa.gov/Ferret/FAQ/custom_plots/changing_linewidths.html 
+
+#---------------------------------------------
+factor=3
+
+while [ $# -ne 0 ]
+do
+        case $1 in
+        -h|--help|-help)
+                echo "----------------------------------------------------------------------------"
+                echo "Usage: change_widths [-f factor] metafile.plt"
+                echo
+                echo "Description: Change line thickness in metafile"
+                echo "             Modified metafile is sent to standard output" 
+                echo
+                echo "Arguments:"
+                echo "   metafile.plt: Metafile must have .plt in name."
+                echo
+                echo "Options:"
+                echo "   -h, --help, -help"
+                echo "       Print this manual."
+                echo
+                echo "----------------------------------------------------------------------------"
+                exit ;;
+        -f|--factor)
+                factor=$2
+                shift 2 ;;
+        *)
+                break ;;
+
+        esac
+done
+
+if [ $# -ne 1 ] ; then
+        change_widths -h
+        exit
+fi
+
+#---------------------------------------------
+width2_old=2.00000
+width2_new=`echo $width2_old $factor| awk '{printf("%.5f\n", $1*$2)}'`
+
+width3_old=3.00000
+width3_new=`echo $width3_old $factor| awk '{printf("%.5f\n", $1*$2)}'`
+
+#---------------------------------------------
+cat $1 | sed \
+ -e "s/ 51    29     7     1    $width2_old     1/ 51    29     7     1    $width2_new     1/" \
+ -e "s/ 51    29    13     1    $width3_old     1/ 51    29    13     1    $width3_new     1/" \
+ -e "s/ 51    29     8     1    $width2_old     2/ 51    29     8     1    $width2_new     2/" \
+ -e "s/ 51    29    14     1    $width3_old     2/ 51    29    14     1    $width3_new     2/" \
+ -e "s/ 51    29     9     1    $width2_old     3/ 51    29     9     1    $width2_new     3/" \
+ -e "s/ 51    29    15     1    $width3_old     3/ 51    29    15     1    $width3_new     3/" \
+ -e "s/ 51    29    10     1    $width2_old     4/ 51    29    10     1    $width2_new     4/" \
+ -e "s/ 51    29    16     1    $width3_old     4/ 51    29    16     1    $width3_new     4/" \
+ -e "s/ 51    29    11     1    $width2_old     5/ 51    29    11     1    $width2_new     5/" \
+ -e "s/ 51    29    17     1    $width3_old     5/ 51    29    17     1    $width3_new     5/" \
+ -e "s/ 51    29    12     1    $width2_old     6/ 51    29    12     1    $width2_new     6/" \
+ -e "s/ 51    29    18     1    $width3_old     6/ 51    29    18     1    $width3_new     6/" 
+
+#---------------------------------------------

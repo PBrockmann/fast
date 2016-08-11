@@ -1,0 +1,283 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Plot vectors in orthographic projection 
+!
+! Usage: go vect_ortho_2 CENTRAL_MERIDIAN CENTRAL_PARALLEL lon lat u v [skip=1] [fill] [marg=40]
+!                  
+! Notes:  
+!  *  lon = starting longitude of the vector 
+!    lat = starting latitude of the vector 
+!    u = zonal wind component
+!    v = meridional wind component
+!  * lon, lat, u, v can be either vectors or arrays
+!  * The vector scale depends on the plot scale 
+!  * Projection used is orthographic
+!  * polygons file should be an option (as soon as more then 9 arguments possible!)
+!
+! Example:
+!  yes? use monthly_navy_winds.cdf
+!  yes? let LON_WND = x[g=UWND]*y[g=UWND]*0+x[g=UWND]
+!  yes? let LAT_WND = x[g=UWND]*y[g=UWND]*0+y[g=UWND]
+!  yes? go vect_ortho_2 0 40 LON_WND LAT_WND UWND[l=1] VWND[l=1] 10
+!
+! Calls:
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.27 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+!**************************************************************
+! Check arguments
+!**************************************************************
+if $1"false|-h>true|*>false" then
+   message/continue
+   message/continue *********************************
+   message/continue Usage: go vect_ortho_2 CENTRAL_MERIDIAN CENTRAL_PARALLEL lon lat u v [skip=1] [fill] [marg=40]
+   message/continue 
+   message/continue
+   message/continue Arguments:
+   message/continue CENTRAL_MERIDIAN = [0:360]
+   message/continue CENTRAL_PARALLEL = [-90:90]
+   message/continue Zonal component of wind vector (along longitude) 
+   message/continue Meridional component of wind vector (along latitude) 
+   message/continue Longitude start of wind vector 
+   message/continue Latitude start of wind vector 
+   message/continue
+   message/continue Option:
+   message/continue skip = skipping factor, plot 1 on skip
+   message/continue fill = vector heads are filled if fill is indicated (default=not filled)
+   message/continue marg = margin (as percentage of the smallest hor/vert side of the viewport; default=40)
+   message/continue
+   message/continue Example 1:
+   message/continue let XPOS = {50,130,240,300,140,90,200,210,110,70}
+   message/continue let YPOS = {10,-50,40,20,-10,0,40,70,-35,50}
+   message/continue let U = {10,3,-12,8,15,6,-8,9,17,-8}
+   message/continue let V = {-3,5,7,2,-3,10,-15,11,9,-12}
+   message/continue go vect_ortho_2 0 40 XPOS YPOS U V " " fill
+   message/continue 
+   message/continue Example 2:
+   message/continue use monthly_navy_winds.cdf
+   message/continue let LON_WND = x[g=UWND]*y[g=UWND]*0+x[g=UWND]
+   message/continue let LAT_WND = x[g=UWND]*y[g=UWND]*0+y[g=UWND]
+   message/continue go vect_ortho_2 0 40 LON_WND LAT_WND UWND[l=1] VWND[l=1] 10
+   message/continue *********************************
+   message/continue
+   exit
+endif
+
+query/ignore $1%<Usage: go vect_ortho_2 CENTRAL_MERIDIAN CENTRAL_PARALLEL lon lat u v [skip=1] [fill] [marg=40]%
+query/ignore $2%<Usage: go vect_ortho_2 CENTRAL_MERIDIAN CENTRAL_PARALLEL lon lat u v [skip=1] [fill] [marg=40]%
+query/ignore $3%<Usage: go vect_ortho_2 CENTRAL_MERIDIAN CENTRAL_PARALLEL lon lat u v [skip=1] [fill] [marg=40]%
+query/ignore $4%<Usage: go vect_ortho_2 CENTRAL_MERIDIAN CENTRAL_PARALLEL lon lat u v [skip=1] [fill] [marg=40]%
+query/ignore $5%<Usage: go vect_ortho_2 CENTRAL_MERIDIAN CENTRAL_PARALLEL lon lat u v [skip=1] [fill] [marg=40]%
+query/ignore $6%<Usage: go vect_ortho_2 CENTRAL_MERIDIAN CENTRAL_PARALLEL lon lat u v [skip=1] [fill] [marg=40]%
+
+if `$7%1% lt 1` then
+   message/continue Error\! Must have option skip > 0
+   exit
+endif
+
+!**************************************************************
+set data/save
+
+!**************************************************************
+define symbol ME_margin = `$9%40%`
+
+!**************************************************************
+let ME_PI = atan(1.)*4.
+let ME_DEG2RAD = ME_PI/180.
+
+!**************************************************************
+! ratio width/height=2
+def sym ME_ratio = 2 
+def sym ME_plot_width = `(1-($ME_margin)/100)*min(($vp_width),($ME_ratio)*($vp_height))`
+def sym ME_plot_height = `($ME_plot_width)/($ME_ratio)`
+ppl axlen ($ME_plot_width), ($ME_plot_height)
+ppl origin `(($vp_width)-($ME_plot_width))/2`,`(($vp_height)-($ME_plot_height))/2`
+
+!**************************************************************
+let ME_Longitude=ME_headlon5
+let ME_Latitude=ME_headlat5
+
+let ME_CM = $1 
+let ME_CP = $2 
+
+let ME_LAMBDA0 = ME_CM*ME_DEG2RAD
+let ME_LAMBDA = ME_Longitude*ME_DEG2RAD
+let ME_PHI0 = ME_CP*ME_DEG2RAD
+let ME_PHI = ME_Latitude*ME_DEG2RAD
+
+let ME_X_PAGE = cos(ME_PHI)*sin(ME_LAMBDA-ME_LAMBDA0)*ME_MASK
+let ME_Y_PAGE = cos(ME_PHI0)*sin(ME_PHI)-sin(ME_PHI0)*cos(ME_PHI)*cos(ME_LAMBDA-ME_LAMBDA0)*ME_MASK
+let ME_Z_PAGE = sin(ME_PHI0)*sin(ME_PHI)+cos(ME_PHI0)*cos(ME_PHI)*cos(ME_LAMBDA-ME_LAMBDA0)
+
+let ME_MASK = if ME_Z_PAGE ge 0 then 1
+
+!**************************************************************
+let ME_lon=xsequence(($3))
+let ME_lat=xsequence(($4))
+let ME_u=xsequence(($5))
+let ME_v=xsequence(($6))
+
+def sym ME_nbvectors=`ME_u,return=iend`
+!say `($ME_nbvectors)`
+
+!-----------------------
+! Select 1 vector on $7 (default = all)
+let ME_select0=mod(i[i=1:($ME_nbvectors)]-1,`$7%1%`) + 1 
+let ME_select1=if ME_select0 eq 1 then 1
+
+let ME_u1 = ME_u * ME_select1
+let ME_v1 = ME_v * ME_select1
+let ME_lon1 = ME_lon * ME_select1
+let ME_lat1 = ME_lat * ME_select1
+
+!-----------------------
+! vector points
+!           e 
+!         / | \
+!        a -|- b
+!           | 
+!           | 
+!           | 
+!           s 
+!-----------------------
+def sym ME_head_size = `30/100`              ! in percentage
+let ME_head_angle = 30*ME_DEG2RAD            ! in degrees
+let ME_size = ($ME_head_size) * (ME_u1^2 + ME_v1^2)^.5
+let ME_alpha = atan2(ME_v1,ME_u1)
+
+!-- point a
+let ME_headlon_a0 = cos(ME_alpha - ME_head_angle) * ME_size * 1/cos(ME_head_angle)
+let ME_headlat_a0 = sin(ME_alpha - ME_head_angle) * ME_size * 1/cos(ME_head_angle)
+
+let ME_headlon_a1 = ME_lon1 + ME_u1 - ME_headlon_a0  
+let ME_headlat_a1 = ME_lat1 + ME_v1 - ME_headlat_a0 
+
+!-- point b
+let ME_headlon_b0 = sin(ME_alpha + ME_head_angle - ME_PI/2.) * ME_size * 1/cos(ME_head_angle)
+let ME_headlat_b0 = cos(ME_alpha + ME_head_angle - ME_PI/2.) * ME_size * 1/cos(ME_head_angle)
+
+let ME_headlon_b1 = ME_lon1 + ME_u1 + ME_headlon_b0 
+let ME_headlat_b1 = ME_lat1 + ME_v1 - ME_headlat_b0 
+
+!-- make the polygon vectors 
+let ME_dum = ME_u*0 + j[j=1:6]
+
+
+!**************************************************************
+!**************************************************************
+! 1st map (CM,CP) on the left
+
+!**************************************************************
+! overlay polygons 
+use polysimple_earth_continents.nc
+define symbol ME_line = 1
+let ME_Longitude = CONT_LON
+let ME_Latitude = CONT_LAT
+plot/vs/nolab/noaxes/hlimits=-1:3/vlimits=-1:1/line=($ME_line) ME_X_PAGE,ME_Y_PAGE
+cancel data polysimple_earth_continents.nc
+let ME_radius=1
+let ME_theta=I[I=1:101]*((2*ME_PI)/100)
+let ME_xcircle=ME_radius*COS(ME_theta)
+let ME_ycircle=ME_radius*SIN(ME_theta)
+plot/vs/nolab/line=($ME_line)/over ME_xcircle,ME_ycircle
+
+!**************************************************************
+set data/restore
+
+let ME_Longitude=ME_headlon5
+let ME_Latitude=ME_headlat5
+
+!-----------------------
+! normal vectors or filled head vectors
+if $8%false|fill>true|*>false% then
+
+  ! head filled in black
+  !-- gather points (pt_s--pt_e--pt_a--pt_b--pt_e--pt_s) 
+  let ME_headlon0 = if ME_dum eq 1 then ME_lon1 else ME_dum
+  let ME_headlon1 = if ME_dum eq 2 then ME_lon1+ME_u1 else ME_headlon0
+  let ME_headlon2 = if ME_dum eq 3 then ME_headlon_a1 else ME_headlon1
+  let ME_headlon3 = if ME_dum eq 4 then ME_headlon_b1 else ME_headlon2
+  let ME_headlon4 = if ME_dum eq 5 then ME_lon1+ME_u1 else ME_headlon3
+  let ME_headlon5 = if ME_dum eq 6 then ME_lon1 else ME_headlon4
+
+  let ME_headlat0 = if ME_dum eq 1 then ME_lat1 else ME_dum
+  let ME_headlat1 = if ME_dum eq 2 then ME_lat1+ME_v1 else ME_headlat0
+  let ME_headlat2 = if ME_dum eq 3 then ME_headlat_a1 else ME_headlat1
+  let ME_headlat3 = if ME_dum eq 4 then ME_headlat_b1 else ME_headlat2
+  let ME_headlat4 = if ME_dum eq 5 then ME_lat1+ME_v1 else ME_headlat3
+  let ME_headlat5 = if ME_dum eq 6 then ME_lat1 else ME_headlat4
+
+  polygon/over/noaxes/nokey/nolab/line/pal=black/fill ME_X_PAGE,ME_Y_PAGE, i[i=1:($ME_nbvectors)]
+
+!-----------------------
+else
+
+  ! normal vectors
+  !-- gather points (pt_s--pt_e--pt_a--pt_e--pt_b--pt_e) 
+  let ME_headlon0 = if ME_dum eq 1 then ME_lon1 else ME_dum
+  let ME_headlon1 = if ME_dum eq 2 then ME_lon1+ME_u1 else ME_headlon0
+  let ME_headlon2 = if ME_dum eq 3 then ME_headlon_a1 else ME_headlon1
+  let ME_headlon3 = if ME_dum eq 4 then ME_lon1+ME_u1 else ME_headlon2
+  let ME_headlon4 = if ME_dum eq 5 then ME_headlon_b1 else ME_headlon3
+  let ME_headlon5 = if ME_dum eq 6 then ME_lon1+ME_u1 else ME_headlon4
+
+  let ME_headlat0 = if ME_dum eq 1 then ME_lat1 else ME_dum
+  let ME_headlat1 = if ME_dum eq 2 then ME_lat1+ME_v1 else ME_headlat0
+  let ME_headlat2 = if ME_dum eq 3 then ME_headlat_a1 else ME_headlat1
+  let ME_headlat3 = if ME_dum eq 4 then ME_lat1+ME_v1 else ME_headlat2
+  let ME_headlat4 = if ME_dum eq 5 then ME_headlat_b1 else ME_headlat3
+  let ME_headlat5 = if ME_dum eq 6 then ME_lat1+ME_v1 else ME_headlat4
+
+  polygon/over/noaxes/nokey/nolab/line ME_X_PAGE,ME_Y_PAGE, i[i=1:($ME_nbvectors)]
+
+endif
+!-----------------------
+
+!**************************************************************
+!**************************************************************
+! 2nd map (CM+180,-CP) on the right
+
+let ME_CM = $1+180
+let ME_CP = -1*$2
+
+!**************************************************************
+! overlay polygons
+use polysimple_earth_continents.nc
+let ME_Longitude = CONT_LON
+let ME_Latitude = CONT_LAT
+plot/vs/nolab/line=($ME_line)/over ME_X_PAGE+2,ME_Y_PAGE
+cancel data polysimple_earth_continents.nc
+plot/vs/nolab/line=($ME_line)/over ME_xcircle+2,ME_ycircle
+
+!**************************************************************
+set data/restore
+
+let ME_Longitude=ME_headlon5
+let ME_Latitude=ME_headlat5
+
+!-----------------------
+! normal vectors or filled head vectors
+if $8%false|fill>true|*>false% then
+  polygon/over/noaxes/nokey/nolab/line/pal=black/fill ME_X_PAGE+2,ME_Y_PAGE, i[i=1:($ME_nbvectors)]
+else
+  polygon/over/noaxes/nokey/nolab/line ME_X_PAGE+2,ME_Y_PAGE, i[i=1:($ME_nbvectors)]
+endif
+!-----------------------
+
+!**************************************************************
+cancel sym ME_*
+cancel var ME_*
+
+!**************************************************************
+set mode/last verify
+
+

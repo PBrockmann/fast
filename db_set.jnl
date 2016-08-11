@@ -1,0 +1,13 @@
+\cancel mode verify
+
+say "===================================="
+say "Warning - Warning - Warning -Warning"
+say "Please, apply the following command:"
+say "cp $FER_FAST/.ferret ~"
+say "The script db_set.jnl has been removed"
+say "for a re-organisation of FAST deposit."
+say "Please change your scripts and remove"
+say "calls to 'go db_set'"
+say "===================================="
+
+set mode/last verify

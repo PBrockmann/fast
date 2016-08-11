@@ -1,0 +1,44 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Define extra colors after classic 1-6 colors
+!
+! Usage: go define_colors
+!
+! Notes: - Only possible with ferret release > 6.30 (mode linecolors)
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@cea.fr
+! $Date: $
+! $Name: $
+! $Revision: $
+! History:
+! Modification:
+!
+!**************************************************************
+
+!============================
+! Color for graticule
+ppl color 6, 80, 80, 80
+
+let colors={"3B63E6", "FF4500", "FFE000", "34D314", "FF1392", "FFA400", "775BB4", "F5E6BD", "789BF1", "AFDFE6", "0000C7", "1FB1AA", "B12121", "DEB886", "FFB6C1"}
+! define additional colors from 7 to 21
+go set_color_from_hexa 7 `colors[i=1]`
+go set_color_from_hexa 8 `colors[i=2]`
+go set_color_from_hexa 9 `colors[i=3]`
+go set_color_from_hexa 10 `colors[i=4]`
+go set_color_from_hexa 11 `colors[i=5]`
+go set_color_from_hexa 12 `colors[i=6]`
+go set_color_from_hexa 13 `colors[i=7]`
+go set_color_from_hexa 14 `colors[i=8]`
+go set_color_from_hexa 15 `colors[i=9]`
+go set_color_from_hexa 16 `colors[i=10]`
+go set_color_from_hexa 17 `colors[i=11]`
+go set_color_from_hexa 18 `colors[i=12]`
+go set_color_from_hexa 19 `colors[i=13]`
+go set_color_from_hexa 20 `colors[i=14]`
+go set_color_from_hexa 21 `colors[i=15]`
+
+!**************************************************************
+set mode/last verify
+

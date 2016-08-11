@@ -1,0 +1,273 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Maps a 2D variable by representing model cells 
+!  as filled polygons using information from the model grid file
+!  as defined in netCDF and GDT conventions
+!
+! Usage: go map_ortho_2 GRID CENTRAL_MERIDIAN CENTRAL_PARALLEL 2DVAR [marg=40] [POLYGON qualifiers] [polygons file]
+!
+! Example: go -h map_ortho_2 
+!
+! Notes:
+!  * Variables that must be present in the GDT grid file are: 
+!  lon, lat, bounds_lon, bounds_lat
+!  * Projection used is a double orthographic (antipode)
+!  * If polygons file specified, overlay of continents are made using
+!  the same argument CM and CP
+!  * hlimits and vlimits must be indicated according to the
+!  the ratio of h/v=2 and the domain of plotting: 
+!               hlimits -1:3
+!               vlimits -1:1 
+!  * Use ppl set to define an empty symbol (not possible with def symbol)
+!  * xsequence(VAR) is used with return=size because return option doesn't take
+!  in consideration operators (see err550_size.jnl)
+!  * change to avoid `var[d=file.nc],return=size` by `xsequence(var[d=file.nc]),return=isize`
+!  (see bug err600_returnsize.jnl)
+!
+! Calls: go unlabels
+!        go cont_ortho_2
+!
+! Author: Patrick Brockmann 
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr  
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.27 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+!**************************************************************
+! Check arguments 
+!**************************************************************
+if $1"false|-h>true|*>false" then 
+   message/continue 
+   message/continue *********************************
+   message/continue Usage:
+   message/continue go map_ortho_2 GRID CENTRAL_MERIDIAN CENTRAL_PARALLEL 2DVAR [marg=40] [POLYGON qualifiers] [polygons file] 
+   message/continue
+   message/continue Arguments:
+   message/continue GRID = Group name (IPSL,IPSL_DM2,NCAR,MPIM...) or COARDS
+   message/continue CENTRAL_MERIDIAN = [0:360]
+   message/continue CENTRAL_PARALLEL = [-90:90]
+   message/continue 2DVAR
+   message/continue 
+   message/continue Option: 
+   message/continue marg = margin (as percentage of the smallest hor/vert side of the viewport; default=40)
+   message/continue POLYGON qualifiers = /LINE/NOLABEL/LEVELS/PALETTE/HLIMITS/VLIMITS/TITLE/PATTERN/KEY/NOKEY
+   message/continue polygons file = specify xxxxx to use an existing polygon file named polysimple_xxxxx.nc
+   message/continue
+   message/continue Examples:
+   message/continue use "IPSL_CFC_1990.nc"
+   message/continue go map_ortho_2 IPSL 0 40 CFC11[k=1,l=1]
+   message/continue go map_ortho_2 IPSL 150 30 CFC11[k=1,l=1] " " /line
+   message/continue go map_ortho_2 IPSL 150 30 CFC11[k=1,l=1] " " /line/hlim=0:2/vlim=-0.5:0.5
+   message/continue *********************************
+   message/continue 
+   exit
+endif
+
+query/ignore $1%<Usage: go map_ortho_2 GRID CENTRAL_MERIDIAN CENTRAL_PARALLEL 2DVAR [marg=40] [POLYGON qualifiers] [polygons file]%
+query/ignore $2%<Usage: go map_ortho_2 GRID CENTRAL_MERIDIAN CENTRAL_PARALLEL 2DVAR [marg=40] [POLYGON qualifiers] [polygons file]%
+query/ignore $3%<Usage: go map_ortho_2 GRID CENTRAL_MERIDIAN CENTRAL_PARALLEL 2DVAR [marg=40] [POLYGON qualifiers] [polygons file]%
+query/ignore $4%<Usage: go map_ortho_2 GRID CENTRAL_MERIDIAN CENTRAL_PARALLEL 2DVAR [marg=40] [POLYGON qualifiers] [polygons file]%
+
+!**************************************************************
+define symbol ME_GRID = $1
+define symbol ME_margin = $5%40% 
+
+if $6"false|*>true" then 
+   define symbol ME_QUALIFIERS = /fill/noaxes/hlimits=-1:3/vlimits=-1:1$6
+else 
+   define symbol ME_QUALIFIERS = /fill/noaxes/hlimits=-1:3/vlimits=-1:1
+endif
+
+if ($ME_GRID%|COARDS>true|*>false%) then
+   ppl set ME_D
+else
+   define symbol ME_D = D=($ME_GRID)_grid.nc
+endif
+
+!**************************************************************
+set data/save
+
+!**************************************************************
+! Prepare Longitude and Latitude vectors from the model grid
+! They represent the  polygon corners of each cell of the model grid 
+!**************************************************************
+
+if ($ME_GRID%|COARDS>true|*>false%) then
+
+!------------------------------------------
+! lon,lat,bounds_lon,bounds_lat are retrieved from the self-described COARDS conventions netCDF variable 
+!------------------------------------------
+let ME_VAR = $4
+
+let LON=x[gx=ME_VAR]*y[gy=ME_VAR]*0+x[gx=ME_VAR]
+let LAT=x[gx=ME_VAR]*y[gy=ME_VAR]*0+y[gy=ME_VAR]
+
+let ME_BOXLON=x[gx=ME_VAR]*y[gy=ME_VAR]*0+xbox[gx=ME_VAR]
+let ME_DUMMY_BOXLON1=x[gx=ME_VAR]*y[gy=ME_VAR]*0+k[k=1:2]+l[l=1:2]*2
+let ME_DUMMY_BOXLON2=if ME_DUMMY_BOXLON1 EQ 3 then LON-ME_BOXLON/2 else ME_DUMMY_BOXLON1
+let ME_DUMMY_BOXLON3=if ME_DUMMY_BOXLON1 EQ 4 then LON+ME_BOXLON/2 else ME_DUMMY_BOXLON2
+let ME_DUMMY_BOXLON4=if ME_DUMMY_BOXLON1 EQ 5 then LON-ME_BOXLON/2 else ME_DUMMY_BOXLON3
+let BOUNDS_LON=if ME_DUMMY_BOXLON1 EQ 6 then LON+ME_BOXLON/2 else ME_DUMMY_BOXLON4
+
+let ME_BOXLAT=x[gx=ME_VAR]*y[gy=ME_VAR]*0+ybox[gy=ME_VAR]
+let ME_DUMMY_BOXLAT1=x[gx=ME_VAR]*y[gy=ME_VAR]*0+k[k=1:2]+l[l=1:2]*2
+let ME_DUMMY_BOXLAT2=if ME_DUMMY_BOXLAT1 EQ 3 then LAT-ME_BOXLAT/2 else ME_DUMMY_BOXLAT1
+let ME_DUMMY_BOXLAT3=if ME_DUMMY_BOXLAT1 EQ 4 then LAT-ME_BOXLAT/2 else ME_DUMMY_BOXLAT2
+let ME_DUMMY_BOXLAT4=if ME_DUMMY_BOXLAT1 EQ 5 then LAT+ME_BOXLAT/2 else ME_DUMMY_BOXLAT3
+let BOUNDS_LAT=if ME_DUMMY_BOXLAT1 EQ 6 then LAT+ME_BOXLAT/2 else ME_DUMMY_BOXLAT4
+
+let ME_SIZE_GRID=`xsequence(LON),return=isize`
+
+else
+
+!------------------------------------------
+! Open the GDT conventions grid file
+!------------------------------------------
+
+use "($ME_GRID)_grid.nc"
+set data/restore
+
+let ME_SIZE_GRID=`xsequence(LON[d=($ME_GRID)_grid.nc]),return=isize`
+
+!------------------------------------------
+endif
+
+!*************************************************
+let ME_SIZE_VAR=`xsequence(($4)),return=isize`
+if `ME_SIZE_VAR ne ME_SIZE_GRID` then
+   message/continue Error\! Variable and grid size must match 
+   message/continue Grid     = `ME_SIZE_GRID` points
+   message/continue Variable = `ME_SIZE_VAR` points
+   if ($ME_GRID%|COARDS>false|*>true%) then cancel data ($ME_GRID)_grid.nc
+   set data/restore
+   cancel variable ME_*
+   cancel symbol ME_*
+   exit
+endif
+
+!*************************************************
+let ME_SLON_LL = ysequence(BOUNDS_LON[K=1,L=1,($ME_D)])
+let ME_SLON_LR = ysequence(BOUNDS_LON[K=2,L=1,($ME_D)])
+let ME_SLON_UL = ysequence(BOUNDS_LON[K=1,L=2,($ME_D)])
+let ME_SLON_UR = ysequence(BOUNDS_LON[K=2,L=2,($ME_D)])
+
+let ME_DUMMY_LON1 = ME_SLON_LL*0+I[I=1:4]
+let ME_DUMMY_LON2 = if ME_DUMMY_LON1 eq 1 then ME_SLON_LL else ME_DUMMY_LON1
+let ME_DUMMY_LON3 = if ME_DUMMY_LON1 eq 2 then ME_SLON_LR else ME_DUMMY_LON2
+let ME_DUMMY_LON4 = if ME_DUMMY_LON1 eq 3 then ME_SLON_UR else ME_DUMMY_LON3
+let ME_Longitude = if ME_DUMMY_LON1 eq 4 then ME_SLON_UL else ME_DUMMY_LON4
+
+let ME_SLAT_LL = ysequence(BOUNDS_LAT[K=1,L=1,($ME_D)])
+let ME_SLAT_LR = ysequence(BOUNDS_LAT[K=2,L=1,($ME_D)])
+let ME_SLAT_UL = ysequence(BOUNDS_LAT[K=1,L=2,($ME_D)])
+let ME_SLAT_UR = ysequence(BOUNDS_LAT[K=2,L=2,($ME_D)])
+
+let ME_DUMMY_LAT1 = ME_SLAT_LL*0+I[I=1:4]
+let ME_DUMMY_LAT2 = if ME_DUMMY_LAT1 eq 1 then ME_SLAT_LL else ME_DUMMY_LAT1
+let ME_DUMMY_LAT3 = if ME_DUMMY_LAT1 eq 2 then ME_SLAT_LR else ME_DUMMY_LAT2
+let ME_DUMMY_LAT4 = if ME_DUMMY_LAT1 eq 3 then ME_SLAT_UR else ME_DUMMY_LAT3
+let ME_Latitude = if ME_DUMMY_LAT1 eq 4 then ME_SLAT_UL else ME_DUMMY_LAT4
+
+let ME_VAL = ysequence(($4))
+set variable/title=$4 ME_VAL
+
+!**************************************************************
+let ME_PI = atan(1.)*4.
+let ME_DEG2RAD = ME_PI/180.
+
+!**************************************************************
+let ME_CM = $2
+let ME_CP = $3
+
+let ME_LAMBDA0 = ME_CM*ME_DEG2RAD
+let ME_LAMBDA = ME_Longitude*ME_DEG2RAD
+let ME_PHI0 = ME_CP*ME_DEG2RAD
+let ME_PHI = ME_Latitude*ME_DEG2RAD
+
+let ME_X_PAGE0 = cos(ME_PHI)*sin(ME_LAMBDA-ME_LAMBDA0)*ME_MASK0
+let ME_Y_PAGE0 = cos(ME_PHI0)*sin(ME_PHI)-sin(ME_PHI0)*cos(ME_PHI)*cos(ME_LAMBDA-ME_LAMBDA0)*ME_MASK0
+ 
+let ME_X_PAGE1 = cos(ME_PHI)*sin(ME_LAMBDA-ME_LAMBDA0)*ME_MASK1
+let ME_Y_PAGE1 = cos(ME_PHI0)*sin(ME_PHI)-sin(ME_PHI0)*cos(ME_PHI)*cos(ME_LAMBDA-ME_LAMBDA0)*ME_MASK1
+ 
+let ME_MASK0 = if ME_Z_PAGE ge 0 then 1
+let ME_MASK1 = if ME_MASK0[i=@sum] eq 4 then 1
+ 
+let ME_X_PAGE = if ME_VAL ne -1E+34 then ME_X_PAGE1
+let ME_Y_PAGE = if ME_VAL ne -1E+34 then ME_Y_PAGE1
+let ME_Z_PAGE = sin(ME_PHI0)*sin(ME_PHI)+cos(ME_PHI0)*cos(ME_PHI)*cos(ME_LAMBDA-ME_LAMBDA0)  
+
+!**************************************************************
+! ratio width/height=2
+def sym ME_ratio = 2
+def sym ME_plot_width = `(1-($ME_margin)/100)*min(($vp_width),($ME_ratio)*($vp_height))`
+def sym ME_plot_height = `($ME_plot_width)/($ME_ratio)`
+ppl axlen ($ME_plot_width), ($ME_plot_height)
+ppl origin `(($vp_width)-($ME_plot_width))/2`,`(($vp_height)-($ME_plot_height))/2` 
+
+!**************************************************************
+!**************************************************************
+! 1st map (CM,CP) on the left
+
+!**************************************************************
+polygon/nokey/nolab/set_up($ME_QUALIFIERS) ME_X_PAGE,ME_Y_PAGE,ME_VAL
+
+ppl set ME_QUALIFIERS1 $edit(ME_QUALIFIERS,upcase)
+ppl set ME_ISLINE $locate("/LINE",ME_QUALIFIERS1)
+if `($ME_ISLINE) gt 0` then
+   ppl fillpol/line/fill
+else
+   ppl fillpol
+endif
+
+!**************************************************************
+!**************************************************************
+! 2nd map (CM+180,-CP) on the right
+
+set data/restore
+
+!**************************************************************
+let ME_Longitude = if ME_DUMMY_LON1 eq 4 then ME_SLON_UL else ME_DUMMY_LON4
+let ME_Latitude = if ME_DUMMY_LAT1 eq 4 then ME_SLAT_UL else ME_DUMMY_LAT4
+
+let ME_CM = $2+180
+let ME_CP = -1*$3
+
+!**************************************************************
+polygon/set_up($ME_QUALIFIERS) ME_X_PAGE+2,ME_Y_PAGE,ME_VAL
+
+go unlabels 1 8
+
+ppl set ME_QUALIFIERS1 $edit(ME_QUALIFIERS,upcase)
+ppl set ME_ISLINE $locate("/LINE",ME_QUALIFIERS1)
+if `($ME_ISLINE) gt 0` then
+   ppl fillpol/line/fill/over
+else
+   ppl fillpol/over
+endif
+
+!**************************************************************
+if ($ME_GRID%|COARDS>true|*>false%) then
+   cancel var lon,lat,bounds_lon,bounds_lat
+else
+   cancel data ($ME_GRID)_grid.nc
+endif
+set data/restore
+
+!**************************************************************
+! overlay polygons file
+if $7%false|*>true% then
+   go cont_ortho_2 $2 $3 /over `($ME_margin)` $7
+endif
+
+!**************************************************************
+cancel variable ME_*
+cancel symbol ME_*
+
+!**************************************************************
+set mode/last verify

@@ -1,0 +1,110 @@
+#!/bin/ksh
+
+#**************************************************************
+# Description: Generate a ferret descriptor file from a template file.
+#              The template file can use template specifiers which are:
+#              %Y = year, four-digit, zero-filled 
+#              %y = year, two-digit, zero-filled 
+#              %n = month number, two-digit, zero-filled
+#
+# Usage: descriptor_create_from_template http://dods.ipsl.jussieu.fr/cgi-bin/nph-dods/omamce/IPSLCM4/SORTIES_CPL_IPSL/CPL84/MO/CPL84_%Y%n30_histmth.nc year_start year_end > file.des
+#
+# Examples: 
+#  descriptor_create_from_template http://dods.ipsl.jussieu.fr/cgi-bin/nph-dods/omamce/IPSLCM4/SORTIES_CPL_IPSL/CPL84/MO/CPL84_%Y%n30_histmth.nc 1 10 > CPL84_histmth.des
+#  descriptor_create_from_template http://dods.ipsl.jussieu.fr/cgi-bin/nph-dods/omamce/IPSLCM4/SORTIES_CPL_IPSL/CPL84/MO/CPL84_1m_%y%n_%y%n_grid_T.nc 1 20 > CPL84_grid_T.des
+#
+# Notes:
+#  * Descriptor files are not written in a portable format since they
+#    are based on namelist format which are different from F90 and F77.
+#    See explanation given in the ferret FAQ:
+#    http://ferret.wrc.noaa.gov/Ferret/FAQ/system/linux_mc_descriptors.html 
+#    "This error occurs because the descriptor was formatted for Fortran 77
+#     namelist reads, but the Linux version of Ferret was compiled using Fortran 90.
+#     Since Fortran 90 has a different format for namelist reads, the descriptor fails."
+#  * See linuxize_descriptors shell to translate existing descriptor files 
+#    to Linux platforms.
+#
+# Author: Patrick Brockmann
+# Contact: Patrick.Brockmann@ipsl.jussieu.fr
+# $Date: 2009/05/14 15:04:00 $
+# $Name: FAST_608_1_3 $
+# $Revision: 1.1.1.18 $
+# History:
+# Modification:
+#
+
+file_in_template=$1
+year_start=$2
+year_end=$3
+
+#---------------------------------------------
+machine=`uname`
+typeset -u machine
+if [ $machine = 'LINUX' ] ; then
+ namelist_begin='&' 
+ namelist_end='/' 
+else
+ namelist_begin='$' 
+ namelist_end='$END' 
+fi
+
+#---------------------------------------------
+cat <<  END_DESCRIPTOR_HEADER
+ ${namelist_begin}FORMAT_RECORD
+   D_TYPE               = '  MC',
+   D_FORMAT             = '  1A',
+ ${namelist_end}
+ ${namelist_begin}BACKGROUND_RECORD
+   D_T0TIME             = '01-JAN-1800 00:00:00',
+   D_TIME_UNIT          = 1,
+ ${namelist_end}
+ ${namelist_begin}MESSAGE_RECORD
+ ${namelist_end}
+ ${namelist_begin}EXTRA_RECORD
+ ${namelist_end}
+END_DESCRIPTOR_HEADER
+
+#************************
+nb_file=1
+year_cur=$year_start
+month_cur=1
+while [ $year_cur -lt $year_end ] ; do
+
+# year, four-digit, zero-filled
+year_cur_Y=`printf "%04d" $year_cur`
+# year, two-digit, zero-filled
+year_cur_y=`printf "%02d" $year_cur`
+# month number, two-digit, zero-filled
+month_cur_n=`printf "%02d" $month_cur`
+
+file_in=`echo ${file_in_template} | sed -e "s/%Y/${year_cur_Y}/g" -e "s/%y/${year_cur_y}/g" -e "s/%n/${month_cur_n}/g"`
+
+#---------------------------------------------
+    cat <<  END_DESCRIPTOR_MAIN
+ ${namelist_begin}STEPFILE_RECORD
+   S_FILENAME           = '$file_in',
+   S_AUX_SET_NUM        = 0,
+   S_START              = $nb_file,
+   S_END                = $nb_file,
+   S_DELTA              = 1,
+   S_NUM_OF_FILES       = 1,
+   S_REGVARFLAG         = ' ',
+ ${namelist_end}
+END_DESCRIPTOR_MAIN
+
+let nb_file=nb_file+1
+let month_cur=month_cur+1
+if [ $month_cur -eq 13 ] ; then
+	let year_cur=year_cur+1
+	let month_cur=1
+fi
+
+#************************
+done
+
+#---------------------------------------------
+cat <<  END_DESCRIPTOR_FOOTER
+ ${namelist_begin}STEPFILE_RECORD
+   S_FILENAME           = '**END OF STEPFILES**'
+ ${namelist_end} 
+END_DESCRIPTOR_FOOTER

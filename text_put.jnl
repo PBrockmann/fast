@@ -1,0 +1,65 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Put a text at a position expressed as percentage 
+!  of width and height of the viewport over a plot 
+!
+! Usage: go text_put xpos ypos "text" [justification=0] [character height=0.3] [angle=0]
+!
+! Example: 
+!  yes? plot i[i=1:100]
+!  yes? go text_put 40 50 "textcentered" 
+!  yes? go text_put 40 60 "@C004textleft" -1  
+!  yes? go text_put 25 75 "textright" 1  
+!  yes? go text_put 50 50 "line1<NL>then line2<NL>and line3" -1
+!
+! Notes:
+!  * Idem than text_put.jnl but without multilines
+!    needed because repeat loops from text_put.jnl 
+!    cause error when encapsulated in others repeat loops
+!    Replace with <NL> feature  
+!  * Justification: -1 left, 0 center, +1 right 
+!  * Use @Cnnn (where nnn is the pen number) before the text
+!  to get a colored text
+!  For example "@C008This a red text and thick"
+!  * Pen numbers range from 1 to 18 and follow the formula:
+!          pen = 6 * (thickness - 1) + color
+!  with color = 1,2,3,4,5,6 = black,red,green,blue,cyan,magenta
+!  and thickness = 1,2,3
+!  * Caracter height is expressed in cm (default=0.3)
+!  * Angle at which text is to be drawn  
+!  (0 degrees is at 3 o'clock and positive rotation 
+!  is counter clockwise.)
+!
+! Calls: 
+!
+! Author: Patrick Brockmann 
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.26 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+query/ignore $1%<Usage: go text_put xpos ypos "text" [justification=0] [character height=0.3] [angle=0]%
+query/ignore $2%<Usage: go text_put xpos ypos "text" [justification=0] [character height=0.3] [angle=0]%
+query/ignore $3%<Usage: go text_put xpos ypos "text" [justification=0] [character height=0.3] [angle=0]%
+
+def sym ME_xpos=`($VP_WIDTH) * ($1)/100 - ($PPL$XORG)`
+def sym ME_ypos=`($VP_HEIGHT) * ($2)/100 - ($PPL$YORG)`
+def sym ME_just=$4%0%
+def sym ME_labheight=`$5%0.3%/2.54`   ! cm to inch
+def sym ME_angle=$6%0%
+
+ppl set ME_text $3
+
+! text
+label/nouser ($ME_xpos),($ME_ypos),($ME_just),($ME_angle),($ME_labheight), "$3"
+
+!**************************************************************
+cancel sym ME_*
+
+!**************************************************************
+set mode/last verify

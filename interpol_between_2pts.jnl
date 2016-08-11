@@ -1,0 +1,39 @@
+\cancel mode verify
+
+!**************************************************************
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@cea.fr
+! $Date: $ 
+! $Name: $
+! $Revision: $
+!
+!**************************************************************
+
+!**************************************************************
+def sym nbpts=($05%100%)
+
+if `($nbpts) lt 2` then
+	say Number of points cannot be lower than 2 !
+	exit
+endif
+
+!**************************************************************
+let xpos1=($01)
+let ypos1=($02)
+let xpos2=($03)
+let ypos2=($04)
+
+!**************************************************************
+let a=(ypos2-ypos1) / (xpos2-xpos1)
+let b=ypos2 - a*xpos2
+
+let frac=(i[i=1:($nbpts)]-1)/`($nbpts)-1`
+let xpts=xpos1 + (xpos2-xpos1)*frac
+let ypts=a*xpts + b
+
+say \! Variables xpts, ypts are ready to be used
+say \! list xpts,ypts
+
+!**************************************************************
+set mode/last verify
+

@@ -1,0 +1,24 @@
+!**************************************************************
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.10 $
+! History: To create graticule without too close lines at poles
+!          Used to create polysimple_graticule_05s.nc, 
+!                         polysimple_graticule_10s.nc, 
+!                         polysimple_graticule_30s.nc
+! Modification:
+!**************************************************************
+
+use polysimple_graticule_10.nc
+plot/vs/line CONT_LON,CONT_LAT
+
+let A=if mod(CONT_LON,90) eq 0 or abs(cont_lat) le 80 then CONT_LON
+plot/vs/line=8/o A,CONT_LAT
+
+save/clobber/file=polysimple_graticule_10s.nc A,CONT_LAT
+
+sp ncrename -O -h -v A,CONT_LON polysimple_graticule_10s.nc
+
+exit

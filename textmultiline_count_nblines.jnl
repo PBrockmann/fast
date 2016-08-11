@@ -1,0 +1,33 @@
+!**************************************************************
+! Description: Count the number of lines defined by \\n in a text 
+!  through the ME_nblines symbol 
+!
+! Usage: called by textmultiline_set_nblines
+!
+! Notes:
+!  * See textmultiline_set_nblines
+!  
+! Calls: 
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.26 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+!**************************************************************
+
+ppl set ME_cc $extract(`i`,2,ME_text)
+
+ppl set ME_iscr $locate("\n",ME_cc)
+
+if `($ME_iscr) eq 1` then 
+   ppl inc ME_nblines
+endif
+
+!**************************************************************
+

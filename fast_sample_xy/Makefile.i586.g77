@@ -1,0 +1,48 @@
+#
+# Makefile for Ferret External Functions
+#
+
+#
+# Def 
+#
+
+FINCLUDES       = -Iferret_cmn -I.
+FC              = g77
+F77             = g77
+FFLAGS          = -c -fno-second-underscore -ffixed-line-length-132 $(FINCLUDES)
+LD              = g77
+LD_DYN_FLAGS    = -shared
+NETCDF_INCLUDE  = /usr/include
+NETCDF_LIB      = /usr/lib
+
+#
+# Macros
+#
+
+.SUFFIXES: .so
+
+EF_OBJS = pnpoly.o fast_sample_xy_subs.o fast_sample_xy.o
+
+#
+# Rules
+#
+
+.F.o:
+	$(F77) $(FFLAGS) -I$(NETCDF_INCLUDE) -c $<
+
+.o.so:
+	$(LD) $(LD_DYN_FLAGS) $(EF_OBJS) -L$(NETCDF_LIB) -lnetcdf -o $*.so
+
+
+#
+# Targets
+#
+
+all:	pnpoly.o fast_sample_xy_subs.o fast_sample_xy.o fast_sample_xy.so
+
+clean:
+	-rm -f *.o *.so 
+
+#
+# End of Makefile
+#

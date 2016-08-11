@@ -1,0 +1,197 @@
+#!/bin/ksh
+
+#**************************************************************
+# Description: Generate a ferret descriptor file.
+#
+# Usage: descriptor_create_from_knownvalues -h 
+#
+# Notes:
+#  * Use absolute pathnames. 
+#  * Descriptor files are not written in a portable format since they
+#    are based on namelist format which are different from F90 and F77.
+#    See explanation given in the ferret FAQ:
+#    http://ferret.wrc.noaa.gov/Ferret/FAQ/system/linux_mc_descriptors.html 
+#    "This error occurs because the descriptor was formatted for Fortran 77
+#     namelist reads, but the Linux version of Ferret was compiled using Fortran 90.
+#     Since Fortran 90 has a different format for namelist reads, the descriptor fails."
+#  * See linuxize_descriptors shell to translate existing descriptor files 
+#    to Linux platforms.
+#
+# Author: Patrick Brockmann 
+# Contact: Patrick.Brockmann@ipsl.jussieu.fr
+# $Date: 2009/05/14 15:04:00 $
+# $Name: FAST_608_1_3 $
+# $Revision: 1.1.1.13 $
+# History:
+# Modification: Patricia.Cadule@ipsl.jussieu.fr 2004/02/17
+#
+
+#---------------------------------------------
+calendar=NOLEAP
+tstart_init=0
+delta=86400
+nbtsteps=1
+units=1.0
+t0time='01-JAN-1800 00:00:00'
+
+while [ $# -ne 0 ]
+do
+        case $1 in
+        -c|--calendar)
+                calendar=$2
+                shift 2 ;;
+        -s|--start)
+                tstart_init=$2
+                shift 2 ;;
+        -d|--delta)
+                delta=$2
+                shift 2 ;;
+        -n|--nbtsteps)
+                nbtsteps=$2
+                shift 2 ;;
+        -t|--t0time)
+                t0time=$2
+                shift 2 ;;
+        -u|--units)
+                units=$2
+                shift 2 ;;
+        -h|--help|-help)
+                echo "----------------------------------------------------------------------------"
+                echo "Usage: descriptor_create_from_knownvalues" 
+                echo "                          [-s start] [-d delta] [-n nb_timesteps_per_file]"
+                echo "                          [-u units] [-t t0time]"
+                echo "                          [-c calendar_type] file.nc [...] > file.des"
+                echo 
+                echo "       then in a ferret session, type:"
+                echo "       yes? use file"
+                echo "       without extension"
+                echo
+                echo "Description: Generate a ferret descriptor file to describe"
+                echo "             collection of files as a single one"
+                echo "   "
+                echo "Arguments:"
+                echo "   file.nc [...]: Netcdf files to aggregate"
+                echo "                  Files must have the same structure ie the same number of time steps"
+                echo "Options:"
+                echo "   -h, --help, -help"
+                echo "       Print this manual."
+                echo
+                echo "   -c, --calendar"
+                echo "       Calendar type, by default NOLEAP"
+                echo "       Possible choices are: GREGORIAN or STANDARD =  365.2425 days"
+                echo "                             JULIAN                =  365.25 days"
+                echo "                             NOLEAP                =  365 days"
+                echo "                             360_DAY               =  360 days"
+                echo
+                echo "   -s, --start"
+                echo "       Time start in seconds corresponding to the middle of the time covered"
+                echo "       by the first file of the simulation"
+                echo
+                echo "   -d, --delta"
+                echo "       Interval in seconds corresponding to the delta between 2 files" 
+                echo "       of the simulation"
+                echo
+                echo "   -n, --nbtsteps"
+                echo "       Number of time steps per file"
+                echo
+                echo "   -t, --t0time"
+                echo "       Calendar date/time values are entered in the format 'dd-mmm-yyyy hh:mm:ss'"
+                echo "       for example '14-FEB-1988 12:30:00:00'"
+                echo "       which corresponds exactly to the /T0 qualifier on the DEFINE AXIS command"
+                echo
+                echo "   -u, --units"
+                echo "       Specifies the units of the time axis"
+                echo "       The unit choice can be any of the following :"
+                echo "       3600.0"
+                echo "       60.0"
+                echo "       1.0"
+                echo "       which contains the same information as /UNITS= on the DEFINE AXIS command encoded"
+                echo "       as numbers of seconds ."
+                echo "       /UNITS="minutes" corresponds to D_TIME_UNIT = 60., "
+                echo "       /UNITS="hours" corresponds to D_TIME_UNIT  = 3600.," 
+                echo "       ..."
+                echo
+                echo "----------------------------------------------------------------------------"
+		exit ;;
+        -*)
+                descriptor_create_from_knownvalues -h
+                exit ;;
+        *)
+                break ;;
+
+        esac
+done
+
+if [ $# -lt 1 ] ; then
+        descriptor_create_from_knownvalues -h
+        exit
+fi
+
+#---------------------------------------------
+machine=`uname`
+typeset -u machine
+if [ $machine = 'LINUX' ] ; then
+ namelist_begin='&' 
+ namelist_end='/' 
+else
+ namelist_begin='$' 
+ namelist_end='$END' 
+fi
+
+#---------------------------------------------
+cat <<  END_DESCRIPTOR_HEADER_PART1
+ ${namelist_begin}FORMAT_RECORD
+   D_TYPE               = '  MC',
+   D_FORMAT             = '  1A',
+ ${namelist_end}
+END_DESCRIPTOR_HEADER_PART1
+
+#******************
+cat <<  END_DESCRIPTOR_HEADER_PART2
+ ${namelist_begin}BACKGROUND_RECORD
+   D_T0TIME             = '${t0time}',
+   D_TIME_UNIT          = '${units}', 
+   D_CALTYPE            = '${calendar}',
+ ${namelist_end}
+ ${namelist_begin}MESSAGE_RECORD
+ ${namelist_end}
+ ${namelist_begin}EXTRA_RECORD
+ ${namelist_end}
+END_DESCRIPTOR_HEADER_PART2
+
+#******************
+
+#---------------------------------------------
+nb_file=1
+for file in $@ ; do
+
+tstart=`echo "${tstart_init} ${nb_file} ${delta}" | awk '{printf("%.0f\n", $1+($2-1)*$3)}'`
+tend=`echo "${tstart_init} ${nbtsteps} ${delta}" | awk '{printf("%.0f\n", $1+($2-1)*$3 )}'`
+
+cat <<  END_DESCRIPTOR_MAIN
+ ${namelist_begin}STEPFILE_RECORD
+   S_FILENAME           = '${file}',
+   S_AUX_SET_NUM        = 0,
+   S_START              = ${tstart},
+   S_END                = ${tend},
+   S_DELTA              = ${delta},
+   S_NUM_OF_FILES       = 1,
+   S_REGVARFLAG         = ' ',
+ ${namelist_end}
+END_DESCRIPTOR_MAIN
+
+(( nb_file = nb_file + nbtsteps  )) 
+(( nbtsteps = nbtsteps + nbtsteps ))
+done
+
+#---------------------------------------------
+cat <<  END_DESCRIPTOR_FOOTER
+ ${namelist_begin}STEPFILE_RECORD
+   S_FILENAME           = '**END OF STEPFILES**'
+ ${namelist_end} 
+END_DESCRIPTOR_FOOTER
+
+
+
+
+

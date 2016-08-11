@@ -1,0 +1,60 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Set text layer, eventually over a predefined viewport
+!              If viewport not specified, will define a textlayer
+!              over the whole viewport (ie xlim=0:1 and ylim=0:1).
+!
+! Usage: go textlayer_new [viewport]
+! 
+! Examples:
+!        yes? go page_new 1 2 
+!        yes? set v 2 
+!        yes? use monthly_navy_winds
+!        yes? plot uwnd[i=@ave,j=@ave]
+!        yes? go textlayer_new 
+!        yes? go text_legend_put 60 70 70 " over the all page"
+!
+!        yes? set viewport FULL 
+!        yes? use monthly_navy_winds
+!        yes? plot uwnd[i=@ave,j=@ave]
+!        yes? go textlayer_new 
+!        yes? go text_legend_put 60 70 70 " over the all page"
+!
+!        yes? set viewport LL
+!        yes? use monthly_navy_winds
+!        yes? plot uwnd[i=@ave,j=@ave]
+!        yes? def viewport/xlim=0.0:0.5/ylim=0.0:0.5 new_LL   ! Same as LL 
+!        yes? go textlayer_new new_LL
+!        yes? go text_legend_put 60 70 70 " over the viewport"
+!
+! Notes: * if a viewport has not been specified 
+!          and "go page_new" has not been used previously, 
+!          "go textlayer_new" will erase the window (?)
+!
+! Calls: go margins
+!
+! Author: Patrick Brockmann 
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.26 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+if $1"true|*>false" then 
+	def view/xlim=0.,1./ylim=0.,1. TextLayer
+	set view TextLayer
+else
+	set view $1
+endif
+
+go margins 0.001,0.001,0.001,0.001
+
+POLYGON/nolab/noaxes/nokey/fill/hlim=0:1/vlim=0:1/lev=(1000) {0,0,1,1,0},{0,1,1,0,0},{0}
+
+!**************************************************************
+set mode/last verify
+

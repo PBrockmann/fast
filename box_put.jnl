@@ -1,0 +1,48 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Plot box in the active viewport
+!
+! Usage: go box_put x1 y1 x2 y2
+!
+! Author: Patrick Brockmann 
+! Contact: Patrick.Brockmann@cea.fr
+! $Date: 2009/05/14 15:03:59 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.5 $
+! History:
+! Modification:
+! Exemple:
+!          yes? use monthly_navy_winds
+!          yes? plot/line=7/dash=(0.05,0.1,0.2,0.1)  UWND[i=@ave,j=@ave]
+!          yes? go box_put 65 70 85 80
+!          yes? go text_legend_put2 66 74 75 " my legend" /line=7/dash=(0.05,0.1,0.2,0.1)
+!
+!**************************************************************
+
+def sym ME_xpos1=`($VP_WIDTH) * ($1)/100 - ($PPL$XORG)`
+def sym ME_ypos1=`($VP_HEIGHT) * ($2)/100 - ($PPL$YORG)`
+def sym ME_xpos2=`($VP_WIDTH) * ($3)/100 - ($PPL$XORG)`
+def sym ME_ypos2=`($VP_HEIGHT) * ($4)/100 - ($PPL$YORG)`
+def sym ME_qualifiers=$5%/line/color=1%
+
+! line made with plot command (waiting for qualifiers /nouser)
+ppl window,off
+let ME_xslope=((($XAXIS_MAX))-(($XAXIS_MIN)))/($PPL$XLEN)
+let ME_yslope=((($YAXIS_MAX))-(($YAXIS_MIN)))/($PPL$YLEN)
+
+let ME_x1=(($XAXIS_MIN))+ME_xslope*(($ME_xpos1))
+let ME_x2=(($XAXIS_MIN))+ME_xslope*(($ME_xpos2))
+let ME_y1=(($YAXIS_MIN))+ME_yslope*(($ME_ypos1))
+let ME_y2=(($YAXIS_MIN))+ME_yslope*(($ME_ypos2))
+
+plot/over/vs/nolab($ME_qualifiers) {`ME_x1`,`ME_x1`,`ME_x2`,`ME_x2`,`ME_x1`},{`ME_y1`,`ME_y2`,`ME_y2`,`ME_y1`,`ME_y1`}
+
+! return to default
+ppl window,on
+
+!**************************************************************
+cancel var ME_*
+
+!**************************************************************
+set mode/last verify

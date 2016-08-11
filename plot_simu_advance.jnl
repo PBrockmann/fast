@@ -1,0 +1,62 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Create an image to show current state of a run 
+!
+! Usage: go plot_simu_advance.jnl 1800 2500 50 "Current year: 2005<NL> <NL>Simulation IPCC<NL>Scenario CO2x2<NL>Run 1800-2500" 2005 /dir1/dir2/imagename.gif
+!
+! Calls: gif_setsize
+!        margins_set
+!        text_put
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.7 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+
+def sym simu_start=$1
+def sym simu_end=$2
+def sym simu_delta=$3
+def sym simu_title=$4
+def sym simu_present=$5
+def sym imagename=$6
+def sym imagewidth=$7%400%
+def sym imageheight=$8%300%
+
+!------------------------------------
+go gif_setsize ($imagewidth) ($imageheight)
+
+!------------------------------------
+set v FULL
+
+go margins_set 10 50 10 10
+
+!------------------------------------
+! Display all simulation scheduled
+polygon/set/title=""/grat=(dash)/axes=(0,1,0,0)/vlim=0:10/hlim=($simu_start):($simu_end):($simu_delta)/line/fill/pal=gray_light/nolab {($simu_start),($simu_end),($simu_end),($simu_start)},{3,3,4,4}
+ppl xfor (I7)
+ppl axlsze 0.15, 
+ppl labset ,0.15,,
+ppl xlab "Years" 
+ppl labset,,0.2,,
+ppl polygon/line/fill
+
+go text_put 10 30 "($simu_title)" -1 0.6
+
+!------------------------------------
+! Display simulation achieved
+polygon/over/nolab/line/fill/pal=orange {($simu_start),($simu_present),($simu_present),($simu_start)},{3,3,4,4}
+
+!------------------------------------
+spawn rm -f ($imagename)
+frame/file="($imagename)"
+
+!**************************************************************
+set mode verify
+

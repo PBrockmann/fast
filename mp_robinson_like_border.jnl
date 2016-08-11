@@ -1,0 +1,34 @@
+\cancel mode verify	
+
+!**************************************************************
+! Description: draw border for a mp_robinson_like map
+!
+! Usage: go mp_robinson_like_boder [qualifier]
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@lsce.ipsl.fr
+! $Date: $ 
+! $Name: $
+! $Revision: $
+! History:
+! Modification:
+!
+!**************************************************************
+
+!==================================
+def sym qualifierplot=($01%/line/color=1/thick=2%)
+
+let mp_lambda=(i[i=1:181]*0+180)*deg2rad
+let mp_phi=(i[i=1:181]-91)*deg2rad
+plot/over/vs/nolab($qualifierplot) x_page, y_page
+
+let mp_lambda=(i[i=1:181]*0-180)*deg2rad
+let mp_phi=(i[i=1:181]-91)*deg2rad
+plot/over/vs/nolab($qualifierplot) x_page, y_page
+
+let mp_lambda={-180,180,-1E+34,-180,180}*deg2rad
+let mp_phi={-90,-90,-1E+34,90,90}*deg2rad
+plot/over/vs/nolab($qualifierplot) x_page, y_page
+
+!==================================
+set mode/last verify

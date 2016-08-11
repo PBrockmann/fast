@@ -1,0 +1,79 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Demo for background_color.jnl script
+!
+! Usage: go background_color_demo01
+!
+! Example:
+!          yes? go set_rgb_from_namecolor "MediumVioletRed"
+!          yes? go background_color 0 0 0 0 full_bg
+!          yes? 
+!          yes? go set_rgb_from_namecolor "indian red"
+!          yes? go background_color 20 20 20 20 viewport_bg
+!          yes? 
+!          yes? go margins_set 20 20 20 20 ; plot i[i=1:100]
+! 
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@cea.fr
+! $Date: 2009/05/14 15:03:59 $
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.4 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+
+go set_rgb_from_namecolor "MediumVioletRed"
+go background_color 0 0 0 0 full_bg
+
+go set_rgb_from_namecolor "indian red"
+go background_color 20 20 20 20 viewport_bg
+
+go margins_set 20 20 20 20 ; plot i[i=1:100]
+
+!=========================================
+message
+
+go set_rgb_from_namecolor "light steel blue"
+go background_color 0 0 0 0 full_bg
+
+go set_rgb_from_values 255 255 255
+go background_color 20 20 20 20 viewport_bg
+
+go margins_set 20 20 20 20 ; plot i[i=1:100]
+
+!=========================================
+message
+
+go set_rgb_from_namecolor "light steel blue"
+go background_color 0 0 0 0 full_bg
+
+go set_rgb_from_namecolor "navajo white"
+go background_color 20 20 20 20 viewport_bg
+
+go margins_set 20 20 20 20 ; plot i[i=1:100]
+
+!=========================================
+message
+
+go set_rgb_from_namecolor "pale violet red"
+go background_color 0 0 0 0 full_bg
+
+go set_rgb_from_namecolor "navajo white"
+go background_color 20 20 20 20 viewport_bg
+
+go margins_set 20 20 20 20 ; plot i[i=1:100]
+
+!=========================================
+message
+
+go set_rgb_from_namecolor "dark sea green"
+go background_color 0 0 0 0 full_bg
+
+go set_rgb_from_namecolor "navajo white"
+go background_color 20 20 20 20 viewport_bg
+
+go margins_set 20 20 20 20 ; plot i[i=1:100]
+

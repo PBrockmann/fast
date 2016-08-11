@@ -1,0 +1,19 @@
+\cancel mode verify
+message/continue *********************************
+set mode/last verify
+alias ls        spawn ls
+alias m         spawn more ferret.jnl
+alias h         spawn tail -n 20 ferret.jnl
+alias sdf       SHOW DATA/FULL
+alias sg        SHOW GRID
+alias uselev    use levitus_climatology
+alias ex        plot i[i=1:100]
+alias lsfast    ls $FER_FAST
+alias lsatlas   ls $FER_ATLAS
+alias lsdb      ls $DB/grids $DB/extras $DB/climato
+alias color     spawn xanim $FER_FAST/colors_demo.gif &
+cancel mode verify
+message/continue *********************************
+set mode/last verify
+
+go fast_release

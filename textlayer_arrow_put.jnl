@@ -1,0 +1,118 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Put an arrow at a position expressed as percentage 
+!  of width and height of the page 
+!
+! Usage: go textlayer_arrow_put xpos1 ypos1 xpos2 ypos2 [fill] [arrow size head=0.3]
+!
+! Example: 
+!  yes? go page_new 1 2
+!  yes? set v 1
+!  yes? plot i[i=1:100]
+!  yes? go textlayer_new
+!  yes? go textlayer_arrow_put 80 40 50 80 1
+!
+! Notes:
+!  * Arrow size head is expressed in cm
+!
+! Calls: 
+!
+! Author: Patrick Brockmann 
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.26 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+query/ignore $1%<Usage: go textlayer_arrow_put xpos1 ypos1 xpos2 ypos2 [fill] [arrow size head=0.3]%
+query/ignore $2%<Usage: go textlayer_arrow_put xpos1 ypos1 xpos2 ypos2 [fill] [arrow size head=0.3]%
+query/ignore $3%<Usage: go textlayer_arrow_put xpos1 ypos1 xpos2 ypos2 [fill] [arrow size head=0.3]%
+query/ignore $4%<Usage: go textlayer_arrow_put xpos1 ypos1 xpos2 ypos2 [fill] [arrow size head=0.3]%
+
+!**************************************************************
+def sym ME_ratio = `($PPL$XLEN)/($PPL$YLEN)`
+ 
+!**************************************************************
+def sym ME_xpos1=`$1/100`
+def sym ME_ypos1=`$2/100`
+def sym ME_xpos2=`$3/100`
+def sym ME_ypos2=`$4/100`
+
+! arrow
+!**************************************************************
+let ME_PI = atan(1.)*4.
+let ME_DEG2RAD = ME_PI/180.
+
+!**************************************************************
+def sym ME_nbvectors=1
+
+let ME_x1 = ($ME_xpos1)
+let ME_y1 = ($ME_ypos1) 
+let ME_x2 = ($ME_xpos2)
+let ME_y2 = ($ME_ypos2) 
+let ME_u = `($ME_xpos2) - ($ME_xpos1)` 
+let ME_v = `($ME_ypos2) - ($ME_ypos1)`
+
+!-----------------------
+! vector points from x1,y1 with components u,v
+!           2 
+!         / | \
+!        a  |  b
+!           | 
+!           | 
+!           | 
+!           1 
+!-----------------------
+def sym ME_head_size=$6%0.3%		! in cm
+let ME_head_angle = 30*ME_DEG2RAD       ! in degrees
+let ME_size = `($ME_head_size)/(($PPL$XLEN)*2.54)`
+let ME_alpha = atan2(ME_v/($ME_ratio),ME_u)
+
+!-- point a
+let ME_head_xa0 = cos(ME_alpha - ME_head_angle) * ME_size * 1/cos(ME_head_angle)
+let ME_head_ya0 = sin(ME_alpha - ME_head_angle) * ME_size * 1/cos(ME_head_angle)
+
+let ME_head_xa1 = ME_x2 - ME_head_xa0  
+let ME_head_ya1 = ME_y2 - ME_head_ya0 * ($ME_ratio)
+
+!-- point b
+let ME_head_xb0 = sin(ME_alpha + ME_head_angle - ME_PI/2.) * ME_size * 1/cos(ME_head_angle)
+let ME_head_yb0 = cos(ME_alpha + ME_head_angle - ME_PI/2.) * ME_size * 1/cos(ME_head_angle)
+
+let ME_head_xb1 = ME_x2 + ME_head_xb0 
+let ME_head_yb1 = ME_y2 - ME_head_yb0 * ($ME_ratio)
+
+! arrow color
+ppl pen 1,($ME_linecolor)
+
+! line s-e
+ppl aline 1,($ME_xpos1),($ME_ypos1),($ME_xpos2),($ME_ypos2)
+
+! line e-a
+ppl aline 1,($ME_xpos2),($ME_ypos2),`ME_head_xa1`,`ME_head_ya1`
+
+! line e-b
+ppl aline 1,($ME_xpos2),($ME_ypos2),`ME_head_xb1`,`ME_head_yb1`
+
+! line a-b
+!ppl aline 1,`ME_head_xa1`,`ME_head_ya1`,`ME_head_xb1`,`ME_head_yb1`
+
+! normal vectors or filled head vectors
+if $5%false|fill>true|*>false% then
+   polygon/over/noaxes/nokey/nolab/pal=black/line/fill {`ME_head_xa1`,($ME_xpos2),`ME_head_xb1`}, {`ME_head_ya1`,($ME_ypos2),`ME_head_yb1`}, 1
+endif
+
+! Return to normal
+ppl pen 1,1
+ 
+
+!**************************************************************
+cancel sym ME_*
+cancel var ME_*
+
+!**************************************************************
+set mode/last verify

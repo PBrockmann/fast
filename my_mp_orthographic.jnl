@@ -1,0 +1,77 @@
+\ cancel mode verify	
+
+!**************************************************************
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.9 $
+!
+!**************************************************************
+
+
+!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+! mp_orthographic.jnl --  Sets up variables for a Orthographic projection using
+!                  'curvilinear coordinates' code in Ferret v4.50
+!		    		
+! Jonathan Callahan
+! 5/97
+
+! Description:  Sets up variables for a Orthographic map of the world
+!
+! Usage:                    arg1             arg2
+!  go mp_orthographic central_meridian standard_parallel
+!
+! arg 1 - longitude used for the center of the projection
+! arg 2 - latitude used for the center of the projection
+! arg 3 - longitude arrays (2D) for curvilinear grid
+! arg 4 - latitude arrays (2D) for curvilinear grid
+
+! Example:
+!  use coads_climatology 
+!  go mp_orthographic 300 45
+!  set grid sst
+!  shade sst[l=1], x_page, y_page
+
+! This journal file comes from equations in the following book:
+!
+!    An Album of Map Projections
+!    U.S. Geological Survey
+!    Professional Paper 1453
+!
+! Equation numbers refer to the equation number in this book.
+
+query/ignore $1"<Please supply a longitude and latitude:    go mp_orthographic 300 45"
+query/ignore $2"<Please supply a longitude and latitude:    go mp_orthographic 300 45"
+
+if `$2 gt 90` then
+	query/ignore $3"<The latitude must be between -90 and 90"
+elif `$2 lt (-90)` then
+	query/ignore $3"<The latitude must be between -90 and 90"
+endif
+
+let/quiet ME_mp_central_meridian = $1
+let/quiet ME_mp_standard_parallel = $2
+let/quiet ME_mp_x = $3
+let/quiet ME_mp_y = $4
+
+let/quiet ME_Pi = atan(1.)*4.
+let/quiet ME_deg2rad = ME_Pi / 180.0
+
+let/quiet ME_mp_R = 1
+let/quiet ME_mp_k0 = 1
+let/quiet ME_mp_lambda0 = ME_mp_central_meridian * ME_deg2rad
+let/quiet ME_mp_lambda = ME_mp_x * ME_deg2rad
+let/quiet ME_mp_phi = ME_mp_y * ME_deg2rad
+let/quiet ME_mp_phi1 = ME_mp_standard_parallel * ME_deg2rad
+
+let/quiet ME_mp_bigK = 1
+let/quiet ME_mp_cos_z = sin(ME_mp_phi1)*sin(ME_mp_phi) + cos(ME_mp_phi1)*cos(ME_mp_phi)*cos(ME_mp_lambda-ME_mp_lambda0)                    ! eqn (112)
+
+let/quiet ME_x_page = ME_mp_R * ME_mp_bigK * cos(ME_mp_phi) * sin(ME_mp_lambda-ME_mp_lambda0)                                    ! eqn (114)
+let/quiet ME_y_page = ME_mp_R * ME_mp_bigK * ( cos(ME_mp_phi1)*sin(ME_mp_phi) - sin(ME_mp_phi1)*cos(ME_mp_phi)*cos(ME_mp_lambda-ME_mp_lambda0) )   ! eqn (115)
+
+let/quiet ME_mp_mask = if ME_mp_cos_z ge 0 then 1 
+
+!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+set mode/last verify

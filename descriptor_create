@@ -1,0 +1,208 @@
+#!/bin/ksh
+
+#**************************************************************
+# Description: Generate a ferret descriptor file.
+#
+# Usage: descriptor_create -h 
+#
+# Notes:
+#  * Use absolute pathnames. 
+#  * Descriptor files are not written in a portable format since they
+#    are based on namelist format which are different from F90 and F77.
+#    See explanation given in the ferret FAQ:
+#    http://ferret.wrc.noaa.gov/Ferret/FAQ/system/linux_mc_descriptors.html 
+#    "This error occurs because the descriptor was formatted for Fortran 77
+#     namelist reads, but the Linux version of Ferret was compiled using Fortran 90.
+#     Since Fortran 90 has a different format for namelist reads, the descriptor fails."
+#  * See linuxize_descriptors shell to translate existing descriptor files 
+#    to Linux platforms.
+#
+# Author: Patrick Brockmann
+# Contact: Patrick.Brockmann@ipsl.jussieu.fr
+# $Date: 2009/05/14 15:04:00 $
+# $Name: FAST_608_1_3 $
+# $Revision: 1.1.1.21 $
+# History:
+# Modification:
+#
+
+#---------------------------------------------
+calendar=NOLEAP
+variable=t[gt=time_counter]
+time=0
+while [ $# -ne 0 ]
+do
+        case $1 in
+        -c|--calendar)
+                calendar=$2
+                shift 2 ;;
+        -v|--variable)
+                variable=$2
+                shift 2 ;;
+        -t|--time)
+                time=1
+                shift ;;
+        -h|--help|-help)
+                echo "----------------------------------------------------------------------------"
+                echo "Usage: descriptor_create [-t] [-c calendar_type] [-v variable] file.nc [...] > file.des"
+                echo 
+                echo "       then in a ferret session, type:"
+                echo "       yes? use file.des"
+                echo
+                echo "Description: Generate a ferret descriptor file to describe" 
+                echo "             collection of files as a single one"
+                echo
+                echo "Arguments:"
+                echo "   file.nc [...]: Netcdf files to aggregate"
+                echo
+                echo "Options:"
+                echo "   -h, --help, -help"
+                echo "       Print this manual."
+                echo
+                echo "   -t, --time"
+                echo "       Build descriptor file following time axis" 
+                echo "       by default ie without this option the descriptor file is"
+                echo "       built following indexes 1,2,3..." 
+                echo
+                echo "   -c, --calendar"
+                echo "       Considered only with -t option"
+                echo "       Calendar type, by default NOLEAP"
+                echo "       Possible choices are: GREGORIAN or STANDARD =  365.2425 days"
+                echo "                             JULIAN                =  365.25 days"
+                echo "                             NOLEAP                =  365 days"
+                echo "                             360_DAY               =  360 days"
+                echo
+                echo "   -v, --variable"
+                echo "       Time coordinate variable to consider, by default t[gt=time_counter]"
+                echo "       Use single quote like: 't[gt=T_AVE_02592000]'"
+                echo
+                echo "Notes:"
+                echo "   You can also use the following syntax:"
+                echo "       descriptor_create \`cat list_of_files.txt\` > file.des"
+                echo "----------------------------------------------------------------------------"
+		exit ;;
+        -*)
+                descriptor_create -h
+                exit ;;
+        *)
+                break ;;
+
+        esac
+done
+
+if [ $# -lt 1 ] ; then
+        descriptor_create -h
+        exit
+fi
+
+#---------------------------------------------
+machine=`uname`
+typeset -u machine
+if [ $machine = 'LINUX' ] ; then
+ namelist_begin='&' 
+ namelist_end='/' 
+else
+ namelist_begin='$' 
+ namelist_end='$END' 
+fi
+
+#---------------------------------------------
+cat <<  END_DESCRIPTOR_HEADER_PART1
+ ${namelist_begin}FORMAT_RECORD
+   D_TYPE               = '  MC',
+   D_FORMAT             = '  1A',
+ ${namelist_end}
+END_DESCRIPTOR_HEADER_PART1
+
+#******************
+if [ $time -eq 1 ] ; then 
+
+file_1=$1
+t0time=`ferret_returnvalue $file_1 $variable t0 | grep -e "^[0-9]"`
+timeunit_text=`ferret_returnvalue $file_1 $variable tunits | grep -e "^seconds" -e "^minutes" -e "^hours" -e "^days"`
+case $timeunit_text in
+seconds*)
+	timeunit=1.0 ;;
+minutes*)
+	timeunit=60.0 ;;
+hours*) 
+	timeunit=3600.0 ;;
+days*) 
+	timeunit=86400.0 ;;
+*)
+	echo "Error in descriptor_create:"
+	echo "      Time units unknown ?" 
+	echo "      Found as time units: >>>$timeunit_text<<<"
+	echo "      Accepted time units are only: seconds, minutes, hours, days"
+	exit ;;
+esac
+
+cat <<  END_DESCRIPTOR_HEADER_PART2a
+ ${namelist_begin}BACKGROUND_RECORD
+   D_T0TIME             = '$t0time',
+   D_TIME_UNIT          = $timeunit, 
+   D_CALTYPE            = '$calendar',
+ ${namelist_end}
+ ${namelist_begin}MESSAGE_RECORD
+ ${namelist_end}
+ ${namelist_begin}EXTRA_RECORD
+ ${namelist_end}
+END_DESCRIPTOR_HEADER_PART2a
+
+#******************
+else
+
+cat <<  END_DESCRIPTOR_HEADER_PART2b
+ ${namelist_begin}BACKGROUND_RECORD
+   D_TIME_UNIT          = 1,
+ ${namelist_end}
+ ${namelist_begin}MESSAGE_RECORD
+ ${namelist_end}
+ ${namelist_begin}EXTRA_RECORD
+ ${namelist_end}
+END_DESCRIPTOR_HEADER_PART2b
+
+fi
+#******************
+
+#---------------------------------------------
+tend=0
+for file in $@ ; do
+
+ lstart=`ferret_returnvalue $file $variable lstart | grep -e "^[0-9]"`
+ lend=`ferret_returnvalue $file $variable lend | grep -e "^[0-9]"`
+ lstep=`echo "${lstart} ${lend}" | awk '{printf("%.0f\n", $2-$1)}'`
+ if [ $time -eq 1 ] ; then 
+    tstart=`ferret_returnvalue $file $variable tstart | grep -e "^[0-9]"`
+    tend=`ferret_returnvalue $file $variable tend | grep -e "^[0-9]"`
+    if [ $tstart = $tend ] ; then
+       tstep=1
+    else
+       tstep=`echo "${tstart} ${tend} ${lstep}" | awk '{printf("%.0f\n", ($2-$1)/$3)}'`
+    fi
+  else
+    tstart=`echo "${lstart} ${tend}" | awk '{printf("%.0f\n", $1+$2)}'`
+    tend=`echo "${lend} ${tend}" | awk '{printf("%.0f\n", $1+$2)}'`
+    tstep=1
+  fi
+
+cat <<  END_DESCRIPTOR_MAIN
+ ${namelist_begin}STEPFILE_RECORD
+   S_FILENAME           = '${file}',
+   S_AUX_SET_NUM        = 0,
+   S_START              = ${tstart},
+   S_END                = ${tend},
+   S_DELTA              = ${tstep},
+   S_NUM_OF_FILES       = 1,
+   S_REGVARFLAG         = ' ',
+ ${namelist_end}
+END_DESCRIPTOR_MAIN
+
+done
+
+#---------------------------------------------
+cat <<  END_DESCRIPTOR_FOOTER
+ ${namelist_begin}STEPFILE_RECORD
+   S_FILENAME           = '**END OF STEPFILES**'
+ ${namelist_end} 
+END_DESCRIPTOR_FOOTER

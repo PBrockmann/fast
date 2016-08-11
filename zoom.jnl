@@ -1,0 +1,64 @@
+\cancel mode verify
+ 
+!**************************************************************
+! Description: Define zoom limits symbol with the mouse by choosing 
+!  its 2 opposite corners of the area to zoom
+!
+! Usage: go zoom [ratio] 
+!
+! Example:
+!  yes? go map_cylin IPSL 0 bathy[d=IPSL_grid.nc] 
+!  yes? go zoom 
+!  yes? go map_cylin IPSL 0 bathy[d=IPSL_grid.nc] " " /($zoom)
+!
+! Notes:
+!  * If ratio option set, then keep ratio 
+!   and define vsize as hsize/ratio 
+!
+! Calls: 
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.26 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+!**************************************************************
+say \! ************************************
+say \! Click the 1st corner of the area to zoom  
+where
+def sym ME_xpos1=`($XMOUSE),p=0`
+def sym ME_ypos1=`($YMOUSE),p=0`
+ 
+say \! Click the 2nd corner of the area to zoom
+where
+def sym ME_xpos2=`($XMOUSE),p=0`
+def sym ME_ypos2=`($YMOUSE),p=0`
+
+def sym ME_xposmin=`min(($ME_xpos1),($ME_xpos2))`
+def sym ME_xposmax=`max(($ME_xpos1),($ME_xpos2))`
+def sym ME_yposmin=`min(($ME_ypos1),($ME_ypos2))`
+def sym ME_yposmax=`max(($ME_ypos1),($ME_ypos2))`
+
+! Respect ratio (h/v=r)
+if $1"false|*>true" then
+   def sym ME_yposmax=`($ME_yposmin)+(($ME_xposmax)-($ME_xposmin))/$1`
+endif
+
+define sym zoom=hlim=($ME_xposmin):($ME_xposmax)/vlim=($ME_yposmin):($ME_yposmax) 
+
+!**************************************************************
+say \! Now you can use zoom symbol with your previous command,
+say \! or copy the next line 
+say \/($zoom) 
+say \! ************************************
+
+!**************************************************************
+cancel sym ME_*
+ 
+!**************************************************************
+set mode/last verify       

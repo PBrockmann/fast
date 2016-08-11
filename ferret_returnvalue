@@ -1,0 +1,79 @@
+#!/bin/ksh
+#
+# Author: Patrick Brockmann
+# Contact: Patrick.Brockmann@ipsl.jussieu.fr
+# $Date: 2009/05/14 15:04:00 $
+# $Name: FAST_608_1_3 $
+# $Revision: 1.1.1.18 $
+# History:
+# Modification:
+# Usually only following return values ar possible:
+# SHAPE
+# ISTART, JSTART, KSTART, or LSTART
+# IEND, JEND, KEND, or LEND
+# XSTART, YSTART, ZSTART, or TSTART
+# XEND, YEND, ZEND, or TEND
+# SIZE
+# ISIZE, JSIZE, KSIZE, LSIZE
+# BAD
+# T0
+# UNITS
+# IUNITS, JUNITS, KUNITS, LUNITS
+# XUNITS, YUNITS, ZUNITS, TUNITS
+# TITLE
+# GRID
+# IAXIS, JAXIS, KAXIS, or LAXIS
+# XAXIS, YAXIS, ZAXIS, or TAXIS
+# DSET, DSETNUM, DSETPATH
+#
+# Added VSTART, VEND to get
+# first or last value of a 1D variable
+#
+
+#***************************************
+# Redirect standard error on standard output
+#      and redirect standard output on null
+exec 2>&1 1>/dev/null
+
+#***************************************
+file=$1
+variable=$2
+option=$3
+typeset -u option
+
+if [[ $option != VSTART && $option != VEND ]] ; then
+
+#***************************************
+ferret -server << EOS_1
+
+cancel mode calendar
+use "$file"
+message/error \`$variable,return=$option\`
+exit
+
+EOS_1
+
+#***************************************
+
+else
+
+#***************************************
+ferret -server << EOS_2
+
+cancel mode calendar
+use "$file"
+let var=$variable
+def sym var_lstart=\`var,return=lstart\`
+def sym var_lend=\`var,return=lend\`
+def sym var_out=\`var[l=(\$var_lend)]\`
+message/error (\$var_out)
+exit
+
+EOS_2
+
+#***************************************
+
+fi
+
+# clean
+rm -f ferret.jnl* > /dev/null 2>&1

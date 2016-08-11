@@ -1,0 +1,260 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Define viewports automatically placed in a page 
+!  (window at a specific aspect) 
+!
+! Usage: go page_new [-li] ncols nlines [xstart=0] [xend=100] [ystart=0] [yend=100] [xkey=0] [ykey=0] [tagname]
+! 
+!  -l : landscape (default portrait)
+!  -i : invisible viewport limits (default visible)
+!  ncols: number of viewports accross page (default=1) 
+!  nlines: number of viewports down page (default=1)
+!  xstart: horizontal start of viewport definitions from left (as percentage of page width; default=0)
+!  xend: horizontal end of viewport definitions from left (as percentage of page width; default=0)
+!  ystart: vertical start of viewport definitions from bottom (as percentage of page height; default=0)
+!  yend: vertical end of viewport definitions from bottom (as percentage of page height; default=0)
+!  xkey: horizontal size of the key (as percentage; default=0)
+!  ykey: vertital size of the key (as percentage; default=0)
+!
+! Example:
+!  yes? go page_new 2 6 0 100 0 90 
+!  will set up 12 viewports (2 accross, 6 down);
+!  horizontally 100%,vertically 90% of the paper will be considered;
+!  viewports are named using consecutive numbers starting with "1" for 
+!  upper-left to "12" for lower-right
+!
+!  yes? go page_new -l 2 2 0 100 0 90 10 
+!  will set up 4 viewports (2 accross, 2 down) in landscape;
+!  horizontally 100%,vertically 90% of the paper will be considered;
+!  10% of the horizontal size will be used for a key to display a color key
+!
+!  Tagname option can be used to defined viewports for overlays
+!  yes? go page_new -i 1 2 0 100 0 100 0 0
+!  yes? go page_new -i 1 2 0 100 0 100 0 0 bis
+!  yes? use levitus_climatology.cdf
+!  yes? set v 1
+!  yes? plot/axes=(1,1,1,0)/color=1/nolab temp[i=@ave,k=1]
+!  yes? set v 1bis
+!  yes? plot/axes=(1,1,0,1)/color=2/nolab salt[i=@ave,k=1]
+!
+!
+! Notes:
+!  * The script is set up to fill a European A4 page; American users should
+!  uncoment the relevant line below
+!
+! Calls: go viewport_show  
+!
+! Author: Patrick Brockmann 
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.26 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+query/ignore $1%<Usage: go page_new [-li] ncols nlines [xstart=0] [xend=100] [ystart=0] [yend=100] [xkey=0] [ykey=0] [tagname]%
+query/ignore $2%<Usage: go page_new [-li] ncols nlines [xstart=0] [xend=100] [ystart=0] [yend=100] [xkey=0] [ykey=0] [tagname]%
+
+def sym ME_opt=0	! options existence 
+def sym ME_invisible=0 	! default (visible)
+def sym ME_ratio=`296/210`    ! A4 paper portrait (210x296) 
+!def sym ME_ratio=`11/8.5`     ! Letter paper portrait (8.5x11) 
+
+set win/as=`($ME_ratio)`
+
+! Test option -l -i 
+if $1"|-li>true|-il>true|-l>true|-i>true|*>false" then
+
+   if $1"|-l>true|-li>true|-il>true|*>false" then             ! landscape
+      set win/as=`1/($ME_ratio)`
+   endif
+
+   if $1"|-i>true|-li>true|-il>true|*>false" then
+      def sym ME_invisible=1
+   endif
+	
+   def sym ME_opt=`($ME_opt)+1`
+
+endif
+
+let ME_arg1=$`($ME_opt)+1`%1%
+let ME_arg2=$`($ME_opt)+2`%1%
+let ME_arg3=$`($ME_opt)+3`%0%
+let ME_arg4=$`($ME_opt)+4`%100%
+let ME_arg5=$`($ME_opt)+5`%0%
+let ME_arg6=$`($ME_opt)+6`%100%
+let ME_arg7=$`($ME_opt)+7`%0%
+let ME_arg8=$`($ME_opt)+8`%0%
+ppl set ME_arg9 $`($ME_opt)+9`% %
+
+!**************************************************************
+let ME_nc=ME_arg1			! number of columns
+let ME_nl=ME_arg2			! number of lines
+if `ME_nc lt 1 or ME_nl lt 1` then
+   message/continue Error\! Must have ncols > 0 and nlines > 0
+   message/continue Usage: go page_new [-li] ncols nlines [xstart] [xend] [ystart] [yend] [xkey] [ykey]
+   exit
+endif
+
+let ME_xstart=ME_arg3/100	
+if `ME_xstart lt 0 or ME_xstart ge 1` then 
+   message/continue Error\! Must have 0 <= xstart < 100
+   message/continue Usage: go page_new [-li] ncols nlines [xstart] [xend] [ystart] [yend] [xkey] [ykey]
+   exit 
+endif
+
+let ME_xend=ME_arg4/100	
+if `ME_xend le 0 or ME_xend gt 1` then 
+   message/continue Error\! Must have 0 < xend <= 100
+   message/continue Usage: go page_new [-li] ncols nlines [xstart] [xend] [ystart] [yend] [xkey] [ykey]
+   exit 
+endif
+
+if `ME_xend le ME_xstart` then 
+   message/continue Error\! Must have xstart < xend
+   message/continue Usage: go page_new [-li] ncols nlines [xstart] [xend] [ystart] [yend] [xkey] [ykey]
+   exit 
+endif
+
+let ME_ystart=ME_arg5/100	
+if `ME_ystart lt 0 or ME_ystart ge 1` then 
+   message/continue Error\! Must have 0 <= ystart < 100
+   message/continue Usage: go page_new [-li] ncols nlines [xstart] [xend] [ystart] [yend] [xkey] [ykey]
+   exit 
+endif
+
+let ME_yend=ME_arg6/100	
+if `ME_yend le 0 or ME_yend gt 1` then 
+   message/continue Error\! Must have 0 < yend <= 100
+   message/continue Usage: go page_new [-li] ncols nlines [xstart] [xend] [ystart] [yend] [xkey] [ykey]
+   exit 
+endif
+
+if `ME_yend le ME_ystart` then 
+   message/continue Error\! Must have ystart < yend
+   message/continue Usage: go page_new [-li] ncols nlines [xstart] [xend] [ystart] [yend] [xkey] [ykey]
+   exit 
+endif
+
+
+let ME_xkey=ME_arg7/100
+if `ME_xkey lt 0 or ME_xkey ge 1` then 
+   message/continue Error\! Must have 0 <= xkey < 100
+   message/continue Usage: go page_new [-li] ncols nlines [xstart] [xend] [ystart] [yend] [xkey] [ykey]
+   exit 
+endif
+
+let ME_ykey=ME_arg8/100
+if `ME_ykey lt 0 or ME_ykey ge 1` then 
+   message/continue Error\! Must have 0 <= ykey < 100
+   message/continue Usage: go page_new [-li] ncols nlines [xstart] [xend] [ystart] [yend] [xkey] [ykey]
+   exit 
+endif
+
+!****************************************
+let ME_i=mod((I-1),ME_nc)+1		! curent column (1 to nc)
+let ME_xsize=`(ME_xend-ME_xstart-ME_xkey)/ME_nc`
+
+if `ME_xkey ne 0` then
+   if `ME_xsize lt ME_xkey` then 
+      message/continue Error\! Must have larger util size (xstart,xend) for this size of xkey
+      message/continue Error\! xkey must be inferior to (xend-xstart) / (ncol+1) 
+      message/continue Usage: go page_new [-li] ncol nline [xstart] [xend] [ystart] [yend] [xkey] [ykey] [tagname]
+      exit 
+    endif
+    let ME_nc=`ME_nc+1`
+endif
+
+let ME_x1=ME_xsize*(ME_i-1)+ME_xstart
+! control lower boundary
+let ME_xx1=IF ME_x1 LT ME_xstart THEN ME_xstart ELSE ME_x1
+! control upper boundary
+let ME_xxx1=IF ME_xx1 GT ME_xend THEN ME_xend ELSE ME_xx1
+
+let ME_x2=ME_xsize*ME_i+ME_xstart
+! control lower boundary
+let ME_xx2=IF ME_x2 LT ME_xstart THEN ME_xstart ELSE ME_x2
+! control upper boundary
+let ME_xxx2=IF ME_xx2 GT ME_xend THEN ME_xend ELSE ME_xx2
+
+!****************************************
+let ME_j=INT((I-1)/ME_nc)+1		! curent line (1 to nl)
+let ME_ysize=`(ME_yend-ME_ystart-ME_ykey)/ME_nl`
+
+if `ME_ykey ne 0` then
+   if `ME_ysize lt ME_ykey` then 
+      message/continue Error\! Must have larger util size (ystart,yend) for this size of ykey
+      message/continue Error\! ykey must be inferior to (yend-ystart) / (nl+1) 
+      message/continue Usage: go page_new [-li] ncols nlines [xstart] [xend] [ystart] [yend] [xkey] [ykey] [tagname]
+      exit 
+   endif
+   let ME_nl=`ME_nl+1`
+endif
+
+let ME_y1=ME_yend-ME_ysize*ME_j
+! control lower boundary
+let ME_yy1=IF ME_y1 LT ME_ystart THEN ME_ystart ELSE ME_y1
+! control upper boundary
+let ME_yyy1=IF ME_yy1 GT ME_yend THEN ME_yend ELSE ME_yy1
+
+let ME_y2=ME_yend-ME_ysize*(ME_j-1)
+! control lower boundary
+let ME_yy2=IF ME_y2 LT ME_ystart THEN ME_ystart ELSE ME_y2
+! control upper boundary
+let ME_yyy2=IF ME_yy2 GT ME_yend THEN ME_yend ELSE ME_yy2
+
+!****************************************
+let ME_ident=ME_i+(ME_j-1)*ME_nc	! viewportnames 
+
+!*****************************************
+! Viewports
+!*****************************************
+repeat/i=1:`ME_nc*ME_nl` (def view/xlim=`ME_xxx1`,`ME_xxx2`/ylim=`ME_yyy1`,`ME_yyy2` `ME_ident`($ME_arg9) ; set view `ME_ident`($ME_arg9); if `($ME_invisible) ne 1` then (go viewport_show; label 0.5,0.5,0,0,.2 "`ME_ident`($ME_arg9)"))
+
+!*****************************************
+! Main Title
+!*****************************************
+def view/xlim=0.2,0.8/ylim=0.9,1. Title
+set view Title
+if `($ME_invisible) ne 1` then 
+   go viewport_show
+   label 0.5,0.5,0,0,.2 "Title"
+endif
+
+!*****************************************
+! Logo Left
+!*****************************************
+def view/xlim=0.,0.2/ylim=0.9,1. LogoL
+set view LogoL
+if `($ME_invisible) ne 1` then 
+   go viewport_show
+   label 0.5,0.5,0,0,.2 "LogoL"
+endif
+
+!*****************************************
+! Logo Right 
+!*****************************************
+def view/xlim=0.8,1./ylim=0.9,1. LogoR
+set view LogoR
+if `($ME_invisible) ne 1` then 
+   go viewport_show
+   label 0.5,0.5,0,0,.2 "LogoR"
+endif
+
+!*****************************************
+! Borders of the page
+!*****************************************
+! Added to have a full page rendered when -i option used.
+set view FULL 
+go viewport_borders
+
+!**************************************************************
+cancel var ME_* 
+cancel symbol ME_* 
+
+!**************************************************************
+set mode/last verify
+

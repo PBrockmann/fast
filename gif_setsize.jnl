@@ -1,0 +1,49 @@
+!\cancel mode verify 
+
+!**************************************************************
+! Description: Set size of the window
+!
+! Usage: go gif_setsize desired_width desired_height 
+!
+! Example: go gif_setsize 300 400
+!
+!  A typical script would be:
+!          go gif_setsize 600 400
+!          use levitus_climatology
+!          shade/lev=20 temp[k=1]
+!          frame/file="myimage.gif"
+!
+! Calls: gif_getdefaults.jnl
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.7 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+!--------------------------------------------
+! will define width_default and height_default
+go gif_getdefault.jnl
+
+!--------------------------------------------
+let width=$1
+let height=$2
+
+LET ratio= height/width
+LET frac = (0.7*width*height)/(width_default*height_default)
+
+list width_default, height_default
+
+list ratio, frac
+LET ratio= height/width
+! ??? needed see err672_strfloat.jnl
+list ratio, frac
+
+SET WINDOW/ASPECT=`ratio,PRECISION=7`/SIZE=`frac,PRECISION=7`
+
+!--------------------------------------------
+set mode/last verify

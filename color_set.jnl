@@ -1,0 +1,47 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Set color window to white with black ink and default 
+!  color (2-6) or if specified black page with white ink  
+!
+! Usage: go color_set [black] 
+!
+! Example:
+!
+! Notes:
+!
+! Calls: 
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:03:59 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.26 $
+! History:
+! Modification:
+!
+!**************************************************************  
+
+if $1"false|black>true" then
+	ppl color 0,000,000,000 ! black
+	ppl color 1,100,100,100 ! white
+else
+	ppl color 0,100,100,100 ! white
+	ppl color 1,000,000,000 ! black
+endif
+
+
+! ppl color n,rrr,ggg,bbb ! color 
+
+ppl color 2,100,000,000 ! red
+ppl color 3,000,100,000 ! green
+ppl color 4,000,000,100 ! blue
+ppl color 5,000,100,100 ! cyan
+ppl color 6,100,000,100 ! magenta
+
+!**************************************************************
+cancel sym ME_*
+
+!**************************************************************
+set mode/last verify
+

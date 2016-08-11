@@ -1,0 +1,47 @@
+\cancel mode verify
+
+!=================================================================
+use "($01)"
+let var=($02)
+def sym QUALIFIERS=($03)
+def sym year_ref=($04)
+def sym year_cur=($05)
+def sym dirdest=($06)
+
+def sym lonangle=($07)
+def sym latangle=($08)
+
+!=================================================================
+let varA1=var[t="15-JUL-($year_cur)"]-var[t="15-JUL-($year_ref)"]
+let varB1=var[t="15-JUL-`($year_cur)+1`"]-var[t="15-JUL-($year_ref)"]
+
+!=================================================================
+set w 1
+
+!=================================================================
+go def_var_with_2_extra_points_on_xaxis.jnl varA1 varA2
+go def_var_with_2_extra_points_on_xaxis.jnl varB1 varB2
+
+!=================================================================
+def sym frame=1
+go mapiso_ortho COARDS ($lonangle) ($latangle) varA2 30 fill($QUALIFIERS) earth_continents graticule_30s
+frame/file="($dirdest)/frame_($year_cur)_`($frame),zw=4`.gif"
+sp convert ($dirdest)/frame_($year_cur)_`($frame),zw=4`.gif ($dirdest)/frame_($year_cur)_`($frame),zw=4`.png
+
+!=================================================================
+def sym blendcoef=100
+def sym londelta=1
+def sym frame=2
+repeat/name=alpha/range=`($lonangle)+1*($londelta)`:`($lonangle)+4*($londelta)` ( \ 
+	go mapiso_ortho COARDS `alpha` ($latangle) varA2 30 fill($QUALIFIERS) earth_continents graticule_30s ;\
+	frame/file="($dirdest)/frame_($year_cur)_`($frame),zw=4`.gif" ;\
+	go mapiso_ortho COARDS `alpha` ($latangle) varB2 30 fill($QUALIFIERS) earth_continents graticule_30s ;\
+	frame/file="($dirdest)/frame_($year_cur)_`($frame),zw=4`_tomorph.gif" ;\
+	sp composite -blend ($blendcoef) ($dirdest)/frame_($year_cur)_`($frame),zw=4`.gif  ($dirdest)/frame_($year_cur)_`($frame),zw=4`_tomorph.gif ($dirdest)/frame_($year_cur)_`($frame),zw=4`.png ;\
+	def sym frame=`($frame)+1` ;\
+	def sym blendcoef=`($blendcoef)-20` ;\
+)
+
+!=================================================================
+sp rm -rf ($dirdest)/frame_($year_cur)*gif
+

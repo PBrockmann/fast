@@ -1,0 +1,32 @@
+\cancel mode verify
+
+!**************************************************************
+! Description:
+!
+! Usage: go polydouble_make.jnl /home/cont003/p86mart/ORCA/COAST/cote.ORCA2.3.dat polydouble_ORCA2.3_continents.nc
+!
+! Notes: - See program mercure01:/home/cont003/p86mart/ORCA/COAST/src/coast/docote.f90
+!        - Copied as polysimple_ORCA2.3_continents.nc
+!
+! Calls:
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.2 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+def sym nblines=`{SPAWN:"cat ($01) | wc -l"}`
+def axis/x=1:($nblines):1 vector_length
+def grid/x=vector_length vector_grid
+file/var=cont_lon,cont_lat/g=vector_grid "($01)"
+
+plot/vs/line cont_lon,cont_lat
+
+save/file="($02)"/clobber cont_lon,cont_lat
+
+

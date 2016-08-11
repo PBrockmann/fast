@@ -1,0 +1,46 @@
+!**************************************************************
+! Description: Label a text considering character \\n for newline 
+!
+! Usage: see example 
+!
+! Notes:
+!  * ME_text must have been set previously
+!  * About the definition of ME_text:
+!  Use ppl set instead of def sym since
+!  $1 is interpreted and \\n is then not possible
+!      def sym ME_text=$1 different  ppl set ME_text $1
+!  * ME_nblines must have been set previously by 
+!  go textmultiline_set_nblines
+!
+! Example: see textlayer_put_text
+!
+! Calls: 
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.26 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+!**************************************************************
+
+ppl set ME_wcr $locate("\n",ME_text)
+
+if `($ME_wcr) ne 0` then 
+   def sym ME_pos2=`($ME_wcr)-1`
+   ppl set ME_textline $extract(1,'ME_pos2',ME_text)
+   def sym ME_pos1=`($ME_wcr)+2`
+   def sym ME_pos2=`($ME_textlen)-($ME_wcr)-1`
+   ppl set ME_text $extract('ME_pos1','ME_pos2',ME_text)
+else
+   ppl set ME_textline ($ME_text)
+endif
+
+label $1,$2,$3,$4,$5, "($ME_textline)"
+
+!**************************************************************
+

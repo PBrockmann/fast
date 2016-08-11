@@ -1,0 +1,56 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Produce a plot without extra labs (1-5)  
+!
+! Usage: go nolab command arguments [COMMAND qualifiers]
+!
+! Example: 
+!  yes? go nolab shade SST[l=1,d=3]
+!  yes? go nolab shade SST[l=1,d=3] /lev=(-5,20,1) 
+!  yes? go nolab shade "SST[l=1,d=3] ,lon ,lat" /lev=(-5,20,1)
+!  yes? go nolab plot "var1, var2" /vs/title="a title" 
+!
+! Notes: Possible commands are plot, shade, fill, contour 
+!
+! Calls: go unlabels  
+!
+! Author: Patrick Brockmann 
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr  
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.26 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+query/ignore $1%<Usage: go nolab command arguments [COMMAND qualifiers]%
+query/ignore $2%<Usage: go nolab command arguments [COMMAND qualifiers]%
+
+!**************************************************************
+if $3"false|*>true" then
+   define symbol ME_QUALIFIERS = $3
+else
+   ppl set ME_QUALIFIERS  
+endif
+
+!**************************************************************
+$1/set_up($ME_QUALIFIERS) $2 
+
+go unlabels 1 8
+
+ppl set ME_QUALIFIERS1 $edit(ME_QUALIFIERS,upcase)
+ppl set ME_ISOVER $locate("/OVER",ME_QUALIFIERS1)
+
+if `($ME_ISOVER) gt 0` then
+   ppl $1/line/over
+else
+   ppl $1 
+endif
+
+!**************************************************************
+cancel symbol ME_*
+
+!**************************************************************
+set mode/last verify

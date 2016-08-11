@@ -1,0 +1,68 @@
+\cancel mode verify
+ 
+!**************************************************************
+! Description: Create a viewport with the mouse by choosing 
+!  its 2 opposite corners
+!
+! Usage: go viewport_click [viewport name=User]
+!
+! Example:
+!  yes? go textlayer_new
+!  yes? go viewport_click MyNewViewport
+!
+! Notes:
+!
+! Calls: go textlayer_new
+!        go viewport_show
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.26 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+!**************************************************************
+go textlayer_new
+ 
+!**************************************************************
+say \! ************************************
+say \! Click the 1st corner of the viewport
+where
+def sym ME_xpos1=`($XMOUSE)`
+def sym ME_ypos1=`($YMOUSE)`
+ 
+say \! Click the 2nd corner of the viewport
+where
+def sym ME_xpos2=`($XMOUSE)`
+def sym ME_ypos2=`($YMOUSE)`
+
+def sym ME_xposmin=`min(($ME_xpos1),($ME_xpos2))`
+def sym ME_xposmax=`max(($ME_xpos1),($ME_xpos2))`
+def sym ME_yposmin=`min(($ME_ypos1),($ME_ypos2))`
+def sym ME_yposmax=`max(($ME_ypos1),($ME_ypos2))`
+def sym ME_viewportname=$1%User%
+
+define view/xlim=($ME_xposmin),($ME_xposmax)/ylim=($ME_yposmin),($ME_yposmax) ($ME_viewportname)
+set view ($ME_viewportname)
+go viewport_show
+label 0.5,0.5,0,0,.2 "($ME_viewportname)"
+
+!**************************************************************
+say \! For non-interactive mode, use
+say define view/xlim=($ME_xposmin),($ME_xposmax)/ylim=($ME_yposmin),($ME_yposmax) ($ME_viewportname) 
+say \! ************************************
+
+say/journal \! ************************************
+say/journal \! For non-interactive mode, use
+say/journal define view/xlim=($ME_xposmin),($ME_xposmax)/ylim=($ME_yposmin),($ME_yposmax) ($ME_viewportname) 
+say/journal \! ************************************
+
+!**************************************************************
+cancel sym ME_*
+ 
+!**************************************************************
+set mode/last verify       

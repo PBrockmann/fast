@@ -1,0 +1,30 @@
+!**************************************************************
+! Description:
+!
+! Usage: 
+!
+! Example: 
+!
+! Notes:
+!
+! Calls:
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:03:59 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.2 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+! FF0000 FF8000 FFFF00 80FF00 00FF00 00FF80 00FFFF 0080FF 0000FF 8000FF FF00FF FF0080
+!let colors={"8000FF","FF0080","FFFB01","80FF00","00FF80","0080FF","FF00FF","FF0000","FFFF00","00FF00","00FFFF","0000FF"}
+! from http://www.ncl.ucar.edu/Document/Graphics/ColorTables/Images/amwg.gif
+! and personnal choices with kcolorchooser
+let colors={"3B63E6", "FF4500", "FFE000", "34D314", "FF1392", "FFA400", "775BB4", "F5E6BD", "789BF1", "AFDFE6", "0000C7", "1FB1AA", "B12121", "DEB886", "FFB6C1"}
+
+plot i[i=1:50]
+
+repeat/range=1:`colors,return=iend`/name=n (def sym ns=`n` ; say `colors[i=($ns)]` ; go set_color_from_hexa 2 `colors[i=($ns)]` ; plot/over/color=2/thick=3/line/nolab i[i=1:50]+`n-1`)

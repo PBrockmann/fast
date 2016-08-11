@@ -1,0 +1,36 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Demo for background_color.jnl script
+!
+! Usage: go background_color_demo02
+!
+! Example:
+!          yes? go set_rgb_from_hexa ABCDEF
+!          yes? go background_color 0 0 0 0 full_bg
+!          yes? 
+!          yes? go set_rgb_from_hexa EEEEEE
+!          yes? go background_color 20 20 20 20 viewport_bg
+!          yes? 
+!          yes? go margins_set 20 20 20 20 ; plot i[i=1:100]
+! 
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@cea.fr
+! $Date: 2009/05/14 15:03:59 $
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.4 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+
+!=========================================
+go set_rgb_from_hexa ABCDEF
+go background_color 0 0 0 0 full_bg
+
+go set_rgb_from_hexa EEEEEE
+go background_color 20 20 20 20 viewport_bg
+
+go margins_set 20 20 20 20 ; plot i[i=1:100]
+

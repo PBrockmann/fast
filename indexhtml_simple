@@ -1,0 +1,191 @@
+#!/bin/ksh 
+#
+# Author: Patrick Brockmann
+# Contact: Patrick.Brockmann@ipsl.jussieu.fr
+# $Date: 2009/05/14 15:04:00 $
+# $Name: FAST_608_1_3 $
+# $Revision: 1.1.1.4 $
+# History:
+# Modification:
+#
+
+#---------------------------------------------
+quiet=0
+no_thumbnails=0
+title="Monitoring index"
+outputfile=indexhtml_$$
+
+#---------------------------------------------
+while [ $# -ne 0 ]
+do
+        case $1 in
+        -h|--help|-help)
+                echo "----------------------------------------------------------------------------"
+                echo "Usage: indexhtml_simple [-h] [-q] [-t] [-o outputfile] file [file]"
+                echo
+                echo "Description:"
+                echo "   indexhtml_simple will help you to compose an html index page with"
+                echo "   hyperlinks set to files read from command-line."
+                echo "   The item list of the result html index page is built using the"
+                echo "   first line of the info file (extension .info) if found, or"
+                echo "   by default using the name of the input file without extension."
+                echo "   If files with different extensions are listed by order"  
+                echo "   then the same info file is used."
+                echo
+                echo "   indexhtml uses the convert command from http://www.imagemagick.org/."
+                echo
+                echo "Options:"
+                echo "   -h, --help, -help"
+                echo "       Print this manual."
+                echo
+                echo "   -q, --quiet"
+                echo "       Nothing is printed on standard output."
+                echo
+                echo "   -o, --output file"
+                echo "       The file specified will be used as output."
+                echo "       Default is indexhtml_#processusnumber."
+                echo
+                echo "   -t, --title"
+                echo "       Character string for the index title."
+                echo
+                echo "Arguments:"
+                echo "   file: Files to index are read from command-line."
+                echo
+                echo "Examples:"
+                echo "   indexhtml_simple -o example atlas_7764/s*/*gif"
+                echo "   indexhtml_simple -o example \`ls -rt atlas_7764/s*/*gif atlas_7764/s*/*pdf\`"
+                echo "   indexhtml_simple -o example \`ls *.pdf ; ls -rt atlas_7764/s*/*gif atlas_7764/s*/*pdf\`"
+                echo
+                echo "----------------------------------------------------------------------------"
+                exit ;;
+        -o|--output)
+                outputfile=$2
+                shift 2 ;;
+        -q|--quiet)
+                quiet=1
+                shift ;;
+        -t|--title)
+                title="$2"
+                shift 2 ;;
+        -*)
+                indexhtml_simple -h
+                exit ;;
+        *)
+                break ;;
+
+        esac
+done
+
+if [ $# -le 0 ] ; then
+        indexhtml_simple -h
+        exit
+fi
+
+#---------------------------------------------
+#---------------------------------------------
+function PRINT {
+if [ $quiet -ne 1 ] ; then
+   echo "$1"
+fi;
+}
+
+#---------------------------------------------
+cat << END_HEADER_HTML > ${outputfile}.html
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<!-- ********************************************** -->
+<!--  Created by $USER -->
+<!--  `date` -->
+<!--  Author: Patrick Brockmann -->
+<!--  Contact: Patrick.Brockmann@ipsl.jussieu.fr -->
+<!-- ********************************************** -->
+
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <title>Index $outputfile.html</title>
+</head>
+
+<body text="#000000" bgcolor="#FFFFFF" link="#0000EE" vlink="#551A8B" alink="#FF0000">
+
+<font face="Arial,Helvetica">
+$title
+</font>
+
+<br>
+<br>
+<hr>
+
+<ul>
+<!-- ********************************************** -->
+
+END_HEADER_HTML
+
+#---------------------------------------------
+for file in $@ ; do
+   if [[ -f ${file} && -s ${file} ]] ; then
+      file_dirname=`dirname $file`
+      file_basename=`basename $file`
+      file_basefile=`echo $file_basename | cut -f 1 -d .`
+
+      if echo $file | grep -si "\.gif" > /dev/null ; then
+            if [[ -f $file && -s $file ]] ; then
+               convert -geometry 40%x40% ${file}[0] ${file_dirname}/${file_basefile}.jpg
+               if [[ -f ${file_dirname}/${file_basefile}.jpg && -s ${file_dirname}/${file_basefile}.jpg ]] ; then
+      	           echo "<a href=\"${file}\">"	   >> ${outputfile}.html
+                   echo "<img src=${file_dirname}/${file_basefile}.jpg></a>"  >> ${outputfile}.html
+               fi 
+            fi
+      fi
+   fi
+done
+
+#---------------------------------------------
+cat << END_FOOTER_HTML >> ${outputfile}.html
+
+<!-- ********************************************** -->
+</ul>
+
+<hr>
+<br>
+<font face="Arial,Helvetica">
+Created by $USER
+</font>
+
+<br>
+<font face="Arial,Helvetica">
+`date`
+</font>
+<br>
+<font face="Arial,Helvetica">
+Validated by 
+<a href="http://validator.w3.org">http://validator.w3.org
+</a>
+</font>
+
+<br>
+<font face="Arial,Helvetica">
+FAST tagname: $Name: FAST_570_1_3<br>
+More informations: 
+<a href="http://dods.ipsl.jussieu.fr/fast">
+http://dods.ipsl.jussieu.fr/fast
+</a>
+</font>
+
+<br>
+
+</body>
+</html>
+
+END_FOOTER_HTML
+
+#---------------------------------------------
+PRINT "------------------------------------------------"
+if [[ -f ${outputfile}.html && -s ${outputfile}.html ]] ; then
+      PRINT "--> ${outputfile}.html created"
+      PRINT "Read html file with:"
+      PRINT "    mozilla ${outputfile}.html"
+else
+      PRINT "--> ERROR! ${outputfile}.html NOT created!"
+fi
+

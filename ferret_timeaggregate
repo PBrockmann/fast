@@ -1,0 +1,52 @@
+#!/bin/ksh 
+
+#**************************************************************
+# Author: Patrick Brockmann
+# Contact: Patrick.Brockmann@ipsl.jussieu.fr
+# $Date: 2009/05/14 15:04:00 $
+# $Name: FAST_608_1_3 $
+# $Revision: 1.1.1.18 $
+# History:
+# Modification:
+#
+#**************************************************************
+
+#---------------------------------------------
+file_in=$1
+l_current=$2
+file_out=$3
+variable=$4
+variable_name=$5
+
+#---------------------------------------------
+output_dir=`dirname ${file_out}`
+if [ ! -d ${output_dir} ] ; then
+   mkdir -p ${output_dir}
+fi 
+
+#---------------------------------------------
+# Redirect standard error on standard output
+#      and redirect standar output on null
+exec 2>&1 1>/dev/null
+
+#---------------------------------------------
+ferret -server << END_SCRIPT
+go timeaggregate ${file_in} ${l_current} ${file_out} ${variable} ${variable_name}
+exit
+END_SCRIPT
+
+#---------------------------------------------
+rm -rf ferret.jnl* metafile.plt* core*
+
+#---------------------------------------------
+if [[ ! -f ${file_out} || ! -s ${file_out} ]] ; then
+   exit 1
+fi
+
+#---------------------------------------------
+l_current_read=`ferret_returnvalue ${file_out} ${variable_name} lend` 
+if [ ${l_current} -ne ${l_current_read} ] ; then
+   echo "ERROR timeaggregate: ${l_current} to append to ${l_current_read}"
+   exit 1
+fi
+

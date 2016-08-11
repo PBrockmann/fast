@@ -1,0 +1,19 @@
+
+make -f Makefile.i586.g77 clean
+
+make -f Makefile.i586.g77
+
+cp *.so $FER_FAST
+
+#================================================================
+# Notes : 
+# Ferret provides symbols with one underscore. This is the case
+# for symbols with prefix ef needed to compile external functions.
+# Thus, compilation must be executed with option -fno-second-underscore  
+# On the other side, if libnetcdf.a provides symbols with two underscores, 
+# you must then transform in the code all calls to netCDF API by adding 
+# a single underscore to form symbols with two underscores at the compilation.
+# Symbols NF_XXXX( are transformed to symbols NF_XXXX_(
+# 
+# In this case, pass the following line :
+# sed -e "s/\(NF_[A-Z_]*\)(/\1_(/g" fast_sample_xy_subs.F.init > fast_sample_xy_subs.F

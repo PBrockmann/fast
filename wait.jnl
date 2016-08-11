@@ -1,0 +1,21 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Do a wait loop 
+!
+! Usage: go wait 
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@cea.fr
+! $Date: $
+! $Name: $
+! $Revision: $
+!
+!**************************************************************
+
+!**************************************************************
+! do a dummy loop 
+repeat/name=wait/range=1:($01%30000%) ( )
+
+!**************************************************************
+set mode/last verify

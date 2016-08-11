@@ -1,0 +1,52 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Align margins of viewport from current viewport margins 
+!  and set viewport
+!
+! Usage: go margins_align viewport 
+!
+! Example: 
+!  yes? go page_new 1 2 
+!  yes? set v 1
+!  yes? go ratio_set 1 
+!  yes? plot i[i=1:100]
+!  yes? go margins_align 2
+!  yes? plot i[i=1:100]
+!
+! Notes:
+!  * set viewport command resets previous ppl axlen and ppl origin commands
+!
+! Calls: go margins_set
+!
+! Author:
+! Contact: 
+!
+! Author: Patrick Brockmann 
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.26 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+query/ignore $1%<Usage: go margins_align viewport%
+!**************************************************************
+
+def sym ME_tmargin = `100*(($vp_height)-(($ppl$ylen)+($ppl$yorg)))/($vp_height),p=4`
+def sym ME_bmargin = `100*($ppl$yorg)/($vp_height),p=4`
+def sym ME_lmargin = `100*($ppl$xorg)/($vp_width),p=4`
+def sym ME_rmargin = `100*(($vp_width)-(($ppl$xlen)+($ppl$xorg)))/($vp_width),p=4`
+
+!**************************************************************
+set view $1
+
+go margins_set ($ME_tmargin) ($ME_bmargin) ($ME_lmargin) ($ME_rmargin)
+
+!**************************************************************
+cancel sym ME_*
+
+!**************************************************************
+set mode/last verify

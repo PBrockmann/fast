@@ -1,0 +1,52 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Define RRR, GGG, BBB variables from 
+!              hexadecimal code on 6 digits
+!              ex: FFFFF for 255,255,255 as RGB values
+!
+! Usage: go set_rgb_from_hexa [-v] XXXXXX
+!
+! Example:
+!          yes? go set_rgb_from_hexa ABFFE5 
+! 
+! Note: Applications such as xv or kcolorchooser will give you hexa color code. 
+! 
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@cea.fr
+! $Date: 2009/05/14 15:04:00 $
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.4 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+if ($01%false|-v>true|*>false%) then
+	def sym verbose=yes 
+	let mycolor={spawn:"echo ($02) | $FER_FAST/convert_hexa"}
+else
+	def sym verbose=no 
+	let mycolor={spawn:"echo ($01) | $FER_FAST/convert_hexa"}
+endif
+
+!----------------------
+let RRR=`mycolor[i=1]`
+let GGG=`mycolor[i=2]`
+let BBB=`mycolor[i=3]`
+
+IF ($verbose) then
+	!list/nohead RRR,GGG,BBB
+	say "******************************"
+	say "Color codes are :"
+	list/nohead/format=("space delimiter ",F6.2,'  'F6.2,'  'F6.2) RRR,GGG,BBB
+	list/nohead/format=("comma delimiter ", F6.2,', 'F6.2,', 'F6.2) RRR,GGG,BBB
+	say "******************************"
+endif
+
+!----------------------
+cancel var mycolor
+cancel symbol verbose 
+
+!----------------------
+set mode/last verify

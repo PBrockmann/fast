@@ -1,0 +1,61 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Set up the size of a window in pixels according to the 
+!  orientation choosen (portrait or landscape)
+!
+! Usage: go page_size [-l] pixels_size 
+!
+!  -l : landscape (default portrait)
+!  size: size in pixels of height of a portrait page 
+!        size in pixels of width of a landscape page 
+!
+! Example:
+!  yes? go page_size 480
+!  will set a portrait page to a height of 480 pixels
+!
+!  yes? go page_size -l 640
+!  will set a landscape page to a width of 640 pixels
+!
+! Notes:
+!  * The script window_init must be callled presviously and as the very first call
+!  (before any SET WINDOW commands have been issued)
+!  * The script is set up to fill a European A4 page; American users should
+!  uncoment the relevant line below
+!  * Based on info found in set_pixel_size script:
+!  "Note that the default window has a size of .7"
+!
+! Calls: go viewport_show
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.26 $
+! History:
+! Modification:
+!
+!**************************************************************  
+
+query/ignore $1%<Usage: go page_size [-l] pixels_size%
+
+!**************************************************************
+def sym ME_ratio = `296/210` ! A4 paper portrait (210x296) (default)
+!def sym ME_ratio = `11/8.5` ! Letter paper portrait (8.5x11) (default)
+
+if $1"|-l>true|*>false" then              ! landscape
+   set win/as=`1/($ME_ratio)`
+   set window/size=`(($2*$2/($ME_ratio))/(($init_xpixel)*($init_ypixel)))*0.7`
+else
+   set win/as=`($ME_ratio)`
+   set window/size=`(($1*$1/($ME_ratio))/(($init_xpixel)*($init_ypixel)))*0.7`
+endif
+
+go viewport_show
+
+!**************************************************************
+cancel sym ME_*
+
+!**************************************************************
+set mode/last verify
+

@@ -1,0 +1,97 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Plot continents file in stereographic north projection  
+!
+! Usage: go cont_stereo_north CENTRAL_MERIDIAN [PLOT qualifiers] [marg=40] [polygons file=earth_continents]
+!
+! Notes:
+!  * Pen numbers (/line=x qualifier) range from 1 to 18 and follow the formula:
+!          color_thickness = 6 * (thickness - 1) + color
+!  with color = 1,2,3,4,5,6 = black,red,green,blue,cyan,magenta
+!  and thickness = 1,2,3
+!  * polygons file = specify xxxxx to use an existing polygon file named polysimple_xxxxx.nc
+!                    default is earth_continents
+!
+! Calls: 
+!
+! Author: Patrick Brockmann 
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr  
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.7 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+query/ignore $1%<Usage: go cont_stereo_north CENTRAL_MERIDIAN [PLOT qualifiers] [marg=40] [polygons file=earth_continents]%
+
+set data/save
+
+!**************************************************************
+define symbol ME_margin = $3%40%
+
+if $2"false|*>true" then
+        define symbol ME_QUALIFIERS = /nolab/vs/line=1/noaxes/hlimits=-1:1/vlimits=-1:1$2
+else
+        define symbol ME_QUALIFIERS = /nolab/vs/line=1/noaxes/hlimits=-1:1/vlimits=-1:1
+endif
+
+
+!**************************************************************
+! ratio width/height=1
+def sym ME_ratio = 1 
+def sym ME_plot_width = `(1-($ME_margin)/100)*min(($vp_width),($ME_ratio)*($vp_height))`
+def sym ME_plot_height = `($ME_plot_width)/($ME_ratio)`
+ppl axlen ($ME_plot_width), ($ME_plot_height)
+ppl origin `(($vp_width)-($ME_plot_width))/2`,`(($vp_height)-($ME_plot_height))/2`
+
+!**************************************************************
+let ME_PI = atan(1.)*4.
+let ME_DEG2RAD = ME_PI/180.
+
+!**************************************************************
+use polysimple_$4%earth_continents%.nc
+
+let/quiet ME_mp_central_meridian = $1
+let/quiet ME_mp_standard_parallel = 90 
+let/quiet ME_mp_x = CONT_LON 
+let/quiet ME_mp_y = CONT_LAT
+
+let/quiet ME_mp_R = 1
+let/quiet ME_mp_k0 = 1
+let/quiet ME_mp_lambda0 = ME_mp_central_meridian * ME_deg2rad
+let/quiet ME_mp_lambda = ME_mp_x * ME_deg2rad
+let/quiet ME_mp_phi = ME_mp_y * ME_deg2rad
+
+let/quiet ME_mp_rho = 2 * ME_mp_R * ME_mp_k0 * tan(ME_Pi/4 - ME_mp_phi/2)  ! eqn (116)
+
+let/quiet ME_x_page = ME_mp_rho * sin(ME_mp_lambda-ME_mp_lambda0)          ! eqn (108)
+let/quiet ME_y_page = (-1.0) * ME_mp_rho * cos(ME_mp_lambda-ME_mp_lambda0) ! eqn (109)
+
+let/quiet ME_mp_mask = 1
+
+plot/set_up($ME_QUALIFIERS) ME_X_PAGE,ME_Y_PAGE
+
+ppl set ME_QUALIFIERS1 $edit(ME_QUALIFIERS,upcase)
+ppl set ME_ISOVER $locate("/OVER",ME_QUALIFIERS1)
+
+if `($ME_ISOVER) gt 0` then
+   ppl plot/line/over
+else
+   ppl plot
+endif
+
+cancel data polysimple_$4%earth_continents%.nc
+
+!**************************************************************
+set data/restore
+
+!**************************************************************
+cancel variable ME_*
+cancel symbol ME_*
+
+!**************************************************************
+set mode/last verify
+

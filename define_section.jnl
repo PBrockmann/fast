@@ -1,0 +1,67 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Define a section from 2 click with mouse
+!
+! Usage: go define_section [100] [noplot]
+!
+! Example:
+!             yes? use levitus_climatology
+!             yes? shade temp[k=1]
+!             yes? go define section 100
+!
+! Notes: * use a second argument to disable plot
+!          can be anything (silent, noplot)
+!          yes? go define section 100 silent
+!
+! Calls:
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@cea.fr
+! $Date: $
+! $Name: $
+! $Revision: $
+! History:
+! Modification:
+!
+!**************************************************************
+
+
+!**************************************************************
+def sym nbpts=($01%100%)
+
+if `($nbpts) lt 2` then
+	say Number of points cannot be lower than 2 !
+	exit
+endif
+
+!**************************************************************
+say \! Click where to start the section 
+where
+let xpos1=`($XMOUSE)`
+let ypos1=`($YMOUSE)`
+
+say \! Click where to point the section 
+where
+let xpos2=`($XMOUSE)`
+let ypos2=`($YMOUSE)`
+
+!**************************************************************
+let a=(ypos2-ypos1) / (xpos2-xpos1)
+let b=ypos2 - a*xpos2
+
+let frac=(i[i=1:($nbpts)]-1)/`($nbpts)-1`
+let xpts=xpos1 + (xpos2-xpos1)*frac
+let ypts=a*xpts + b
+
+say \! Variables xpts, ypts are ready to be used
+say \! list xpts,ypts
+
+!**************************************************************
+if ($02"true|*>false") then
+	plot/vs/over/nolab/color=red/thick=3/line xpts,ypts
+endif
+
+!**************************************************************
+set mode/last verify
+

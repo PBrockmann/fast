@@ -1,0 +1,75 @@
+\CANCEL MODE VERIFY
+
+!**************************************************************
+! Description: Put a text preceeding by a polymark expressed as 
+!  percentage of width and height of the viewport over a plot  
+!
+! Usage : GO legend_polymark xpos1 xpos2 ypos " text" [shape] [polymark qualifiers] [text height] [polymark size]
+!
+! Example:
+! GO legend_polymark 10 20 50  "CTRL" circle /PAL=black 0.3 1
+!
+! Author: Olivier Marti 
+! Contact: olivier.marti@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.2 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+QUERY/IGNORE $1%<Usage: GO legend_polymark xpos1 xpos2 ypos " text"  [shape] [polymark qualifiers] [text height] [polymark size]%
+QUERY/IGNORE $2%<Usage: GO legend_polymark xpos1 xpos2 ypos " text"  [shape] [polymark qualifiers] [text height] [polymark size]%
+QUERY/IGNORE $3%<Usage: GO legend_polymark xpos1 xpos2 ypos " text"  [shape] [polymark qualifiers] [text height] [polymark size]%
+QUERY/IGNORE $4%<Usage: GO legend_polymark xpos1 xpos2 ypos " text"  [shape] [polymark qualifiers] [text height] [polymark size]%
+
+DEFINE SYMBOL ME_xpos1=`($VP_WIDTH) * ($1)/100 - ($PPL$XORG)`
+DEFINE SYMBOL ME_xpos2=`($VP_WIDTH) * ($2)/100 - ($PPL$XORG)`
+DEFINE SYMBOL ME_ypos=`($VP_HEIGHT) * ($3)/100 - ($PPL$YORG)`
+DEFINE SYMBOL ME_shape=$5"circle"
+DEFINE SYMBOL ME_qualifiers=$6%/COLOR=1%
+DEFINE SYMBOL ME_labheight=`$7%0.3%/2.54`   ! cm to inch
+DEFINE SYMBOL ME_scale=$8%0.25%
+DEFINE SYMBOL ME_just=-1      ! left 
+DEFINE SYMBOL ME_angle=0 
+DEFINE SYMBOL ME_value=0
+
+! Print the text
+LABEL/NOUSER ($ME_xpos2),($ME_ypos),($ME_just),($ME_angle),($ME_labheight), "$4"
+
+IF $6"false|*>true" THEN
+    DEFINE SYMBOL ME_qual = /OVER/NOAXIS/NOLAB$6
+ELSE
+    DEFINE SYMBOL ME_qual = /OVER/NOAXIS/NOLAB
+ENDIF
+
+!-----------------------------------
+! Note : Il faudrait ici reprendre ce qui est dans text_legend_put2 pour le cas ou
+!        l'axe des X est un axe des temps
+!
+DEFINE SYMBOL ME_XAXIS_MIN=($XAXIS_MIN)
+DEFINE SYMBOL ME_XAXIS_MAX=($XAXIS_MAX)
+
+!-----------------------------------
+
+! line made with plot command (waiting for qualifiers /nouser)
+PPL WINDOW,OFF
+LET ME_xslope=((($ME_XAXIS_MAX))-(($ME_XAXIS_MIN)))/($PPL$XLEN)
+LET ME_yslope=((($YAXIS_MAX))-(($YAXIS_MIN)))/($PPL$YLEN)
+
+LET ME_x1=(($ME_XAXIS_MIN))+ME_xslope*(($ME_xpos1))
+LET ME_y1=(($YAXIS_MIN))+ME_yslope*(($ME_ypos))
+ 
+GO polymark POLY($ME_qual) `ME_x1`,`ME_y1`,`($ME_value)`,($ME_shape),`($ME_scale) `
+
+! return to default
+PPL WINDOW,ON
+
+!**************************************************************  
+CANCEL SYMBOL ME_*
+
+!**************************************************************
+SET MODE/LAST VERIFY
+
+

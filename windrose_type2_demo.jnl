@@ -1,0 +1,45 @@
+
+!#############################################
+use monthly_navy_winds.cdf
+
+!#############################################
+let PI = atan(1.)*4.
+let DEG2RAD = PI/180.
+
+let WND_strength=(UWND^2+VWND^2)^.5
+
+! winds blowing from particular directions 
+! ATAN2(Y,X) 2-argument trigonometric arctangent of Y/X (-pi,pi); discontinuous at Y=0. 
+let WND_angle=atan2(VWND,UWND)/DEG2RAD+180
+
+!#############################################
+go page_new -li 2 2 
+
+ppl color 6,70,70,70
+
+!-------------------------------
+def sym select1=x=-17:30,y=5:30,l=1
+set v 1
+go margins_set 10 10 10 10
+shade/nolab/grat=(dash,color=6)/pal=grads WND_strength[($select1)] ; go land
+vect/over/nolab UWND[($select1)], VWND[($select1)]
+set v 2
+go ratio_set 1 40
+go windrose_type2 WND_angle[($select1)] WND_strength[($select1)]
+
+!-------------------------------
+def sym select1=x=-17:30,y=5:30,l=6
+set v 3 
+go margins_set 10 10 10 10
+shade/nolab/grat=(dash,color=6)/pal=grads WND_strength[($select1)] ; go land
+vect/over/nolab UWND[($select1)], VWND[($select1)]
+set v 4 
+go ratio_set 1 40
+go windrose_type2 WND_angle[($select1)] WND_strength[($select1)]
+
+!-------------------------------
+pause
+
+! overlay mode 
+def sym select1=x=-17:30,y=5:30,l=1
+go windrose_type2 WND_angle[($select1)] WND_strength[($select1)] 1

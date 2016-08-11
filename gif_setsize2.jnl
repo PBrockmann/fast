@@ -1,0 +1,43 @@
+\cancel mode verify 
+
+!**************************************************************
+! Description: Set size of the window
+!
+! Usage: go gif_setsize desired_width desired_height 
+!
+! Example: go gif_setsize 600 400
+!
+!  A script called file.jnl with following commands
+!          go gif_setsize 600 400
+!          use levitus_climatology
+!          shade/lev=20 temp[k=1]
+!  run with
+!          ferret -batch file.gif -script file.jnl
+!  will produce a 600x400 gif image
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: $
+! $Name: $
+! $Revision: $
+! History:
+! Modification:
+!
+!**************************************************************
+
+!--------------------------------------------
+! will define symbols ppl$xpixel and ppl$ypixel
+set window/aspect=0.75
+shade/i=1:10/j=1:15 i+j
+
+!--------------------------------------------
+let width=$1
+let height=$2
+
+LET ratio= height/width
+LET frac = (0.7*width*height)/(($ppl$xpixel)*($ppl$ypixel))
+
+SET WINDOW/ASPECT=`ratio,PRECISION=7`/SIZE=`frac,PRECISION=7`
+
+!--------------------------------------------
+set mode/last verify

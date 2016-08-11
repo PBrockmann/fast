@@ -1,0 +1,31 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Define RRR, GGG, BBB variables from RGB values  
+!
+! Usage: go set_rgb_from_values REDValue GREENValue BLUEValue 
+!
+! Example:
+!          yes? go set_rgb_from_values 255 255 255 
+! 
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@cea.fr
+! $Date: 2009/05/14 15:04:00 $
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.4 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+let RRR_str="($01)"
+let GGG_str="($02)"
+let BBB_str="($03)"
+let RRR=`RRR_str`/2.55
+let GGG=`GGG_str`/2.55
+let BBB=`BBB_str`/2.55
+
+cancel var RRR_str, GGG_str, BBB_str
+
+!----------------------
+set mode/last verify

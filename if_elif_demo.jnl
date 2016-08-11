@@ -1,0 +1,31 @@
+
+!=====================================================
+let calendar=UPCASE("($01)")
+
+!=====================================================
+IF `(calendar EQ "STANDARD") OR (calendar EQ "GREGORIAN")` THEN
+	say `calendar` detected
+
+!=====================================================
+ELIF `(calendar EQ "JULIAN")` THEN
+	say `calendar` detected
+
+!=====================================================
+ELIF `(calendar EQ "NOLEAP") OR (calendar EQ "365_DAY")` THEN
+	say `calendar` detected
+
+!=====================================================
+ELIF `(calendar EQ "ALL_LEAP") OR (calendar EQ "366_DAY")` THEN
+	say `calendar` detected
+
+!=====================================================
+ELIF `calendar EQ "360_DAY"` THEN
+	say `calendar` detected
+
+!=====================================================
+ELSE
+ 	say "`calendar` not known"
+ 	say "Possible calendars are : STANDARD (or GREGORIAN), JULIAN, NOLEAP (or 365_DAY), ALL_LEAP (or 366_DAY), 360_DAY"
+	exit
+
+!=====================================================

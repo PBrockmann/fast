@@ -1,0 +1,163 @@
+#!/bin/ksh 
+#
+# Author: Patrick Brockmann
+# Contact: Patrick.Brockmann@ipsl.jussieu.fr
+# $Date: 2009/05/14 15:04:00 $
+# $Name: FAST_608_1_3 $
+# $Revision: 1.1.1.15 $
+# History:
+# Modification:
+#
+
+#---------------------------------------------
+# European Paper A4 portrait 210x297
+pageheight=297
+pagewidth=210
+
+# US Letter paper portrait 8.5x11
+#pageheight=11
+#pagewidth=8.5
+
+#---------------------------------------------
+geometry_tocalculate='x'
+geometry_ysize=800
+verbose=0
+option_outputname=0
+
+while [ $# -ne 0 ]
+do
+        case $1 in
+        -h|--help|-help)
+                echo "----------------------------------------------------------------------------"
+                echo "Usage: plt2gif [-v] [-h] [-g {xsize}x{ysize}] [-o fileout.gif] metafile.plt"
+                echo
+                echo "Description:"
+                echo "   Convert a metafile produced by ferret to a gif image file."
+                echo "   plt2gif is a shell script based on gksm2ps distributed with ferret,"
+                echo "   gs from http://www.cs.wisc.edu/~ghost and"
+                echo "   convert from http://www.imagemagick.org/."
+                echo
+                echo "   Firstly, the metafile file is converted with gksm2ps to a postscript file." 
+                echo "   Secondly, the postscript is converted with gs to a pnmraw 24 bits image." 
+                echo "   Finally, the pnmraw 24 bits image is converted to a gif image using convert" 
+                echo "   (compiled with the --enable-lzw=yes option)."
+                echo
+                echo "        plt -----------> ps ------> pnmraw -----------> gif"
+                echo "             (gksm2ps)       (gs)           (convert)"  
+                echo
+                echo "Arguments:"
+                echo "   metafile.plt: Metafile must have .plt in name."
+                echo
+                echo "Options:"
+                echo "   -h, --help, -help"
+                echo "       Print this manual."
+                echo
+                echo "   -v, --verbose"
+                echo "       Informations are printed on standard output."
+                echo
+                echo "   -g, --geometry"
+                echo "       Examples:" 
+                echo "       -g 300x500 for a free constraint size image of 300x500 pixels"
+                echo "       -g 800xc for a size of image if 800 pixels of width and a"
+                echo "                height calculated following by a A4 page ratio"
+                echo "       -g cx800 for a size of image if 800 pixels of height and a"
+                echo "                width calculated following by a A4 page ratio"
+                echo "       Default is -g cx800"
+                echo
+	        echo "   -o, --output fileout.gif"
+                echo "       The name of the output gif file"
+                echo "       Default name is built by replacing .plt extension by .gif"
+                echo "       from the input plt file"
+                echo
+		echo "----------------------------------------------------------------------------"
+                exit ;;
+        -g|--geometry)
+                geometry_xsize=`echo $2 | cut -dx -f1`
+                geometry_ysize=`echo $2 | cut -dx -f2`
+		if [ $geometry_xsize = 'c' ] ; then
+			geometry_tocalculate='x'
+		elif [ $geometry_ysize = 'c' ] ; then
+			geometry_tocalculate='y'
+	 	else	
+			geometry_tocalculate='f'
+		fi
+                shift 2 ;;
+        -o|--output)
+		option_outputname=1
+                fileout=$2
+                shift 2 ;;
+        -v|--verbose)
+                verbose=1
+                shift ;;
+        -*)
+                plt2gif -h
+                exit ;;
+        *)
+                break ;;
+
+        esac
+done
+
+if [ $# -ne 1 ] ; then
+        plt2gif -h
+        exit
+fi
+
+if [ option_outputname -eq 0 ] ; then
+	fileout=`basename $1 .plt`.gif
+fi
+
+#---------------------------------------------
+#---------------------------------------------
+function PRINT {
+if [ $verbose -eq 1 ] ; then
+   echo "$1" 
+fi;
+}
+
+#---------------------------------------------
+filein=$1
+
+PRINT "*********************************"
+PRINT "plt2gif informations"
+
+#---------------------------------------------
+case $geometry_tocalculate in
+    'x')
+	ysize=${geometry_ysize}
+	xsize=`echo "${ysize} ${pagewidth} ${pageheight}" | awk '{printf("%.0f\n", $1*$2/$3)}'`
+	yresol=72 
+	xresol=`echo "${pageheight} ${pagewidth}" | awk '{printf("%.0f\n", 72*$1/$2)}'` 
+	PRINT "xsize calculated=${xsize} ysize=${ysize}"
+	PRINT "xresol calculated=${xresol} yresol=${yresol}" ;;
+
+    'y')
+	xsize=${geometry_xsize}
+	ysize=`echo "${xsize} ${pagewidth} ${pageheight}" | awk '{printf("%.0f\n", $1*$2/$3)}'`
+	xresol=72
+	yresol=`echo "${pageheight} ${pagewidth}" | awk '{printf("%.0f\n", 72*$1/$2)}'` 
+	PRINT "xsize=${xsize} ysize calculated=${ysize}"
+	PRINT "xresol=${xresol} yresol calculated=${yresol}" ;;
+
+    'f')
+	xsize=${geometry_xsize}
+	ysize=${geometry_ysize}
+	xresol=72
+	yresol=72 
+	PRINT "xsize=${xsize} ysize=${ysize}"
+	PRINT "xresol=${xresol} yresol=${yresol}" ;;
+esac
+
+
+#*********************************
+PRINT "gksm2ps -R -d cps -l cps -p portrait -g ${xsize}x${ysize} -o ${filein}_$$.ps $filein"
+gksm2ps -R -d cps -l cps -p portrait -g ${xsize}x${ysize} -o ${filein}_$$.ps $filein
+
+#*********************************
+PRINT "gs -q -dNOPAUSE -dBATCH -sDEVICE=pnmraw -r${xresol}x${yresol} -g${xsize}x${ysize} -sOutputFile=- ${filein}_$$.ps | convert - $fileout"
+gs -q -dNOPAUSE -dBATCH -sDEVICE=pnmraw -r${xresol}x${yresol} -g${xsize}x${ysize} -sOutputFile=- ${filein}_$$.ps | convert - $fileout
+
+#*********************************
+rm -f ${filein}_$$.ps
+
+PRINT "*********************************"

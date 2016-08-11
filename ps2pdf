@@ -1,0 +1,191 @@
+#!/bin/ksh
+#
+# Author: Patrick Brockmann
+# Contact: Patrick.Brockmann@ipsl.jussieu.fr
+# $Date: 2009/05/14 15:04:00 $
+# $Name: FAST_608_1_3 $
+# $Revision: 1.1.1.14 $
+# History:
+# Modification:
+#
+
+#---------------------------------------------
+verbose=0
+keep_ps_option=0
+modify_ps_option=0
+merge=0
+landscape=0
+
+#---------------------------------------------
+while [ $# -ne 0 ]
+do
+        case $1 in
+        -h|--help|-help)
+                echo "----------------------------------------------------------------------------"
+	        echo "Usage: ps2pdf [-h] [-v] [-k] [-m] [-l] file.ps [file.ps ...]"
+	        echo "          [merged_output.pdf]"
+                echo
+                echo "Description:"
+                echo "   Convert postscript file(s) to pdf file(s)."
+                echo "   ps2pdf is a shell script based on gs from http://www.cs.wisc.edu/~ghost."
+                echo
+                echo "        ps ------> pdf"
+                echo "            (gs)"
+                echo
+                echo "Arguments:"
+                echo "   file.ps: Postscript file must have .ps in name."
+                echo
+                echo "   merged_output.pdf: This file must have .pdf as extension."
+                echo
+	        echo "Options:"
+                echo "   -h, --help, -help"
+                echo "       Print this manual."
+                echo
+		echo "   -v, --verbose"
+                echo "       Informations are printed on standard output."
+                echo
+                echo "   -k, --keep_ps"
+                echo "       Keeps modified ps files."
+                echo
+                echo "   -m, --modify"
+                echo "       Modify the original ps files."
+                echo
+                echo "   -l, --landscape"
+		echo "       Set final pdf in landscape orientation."
+		echo "       Available only when merging."
+                echo
+                echo "Example:"
+                echo "   ps2pdf page1.ps page2.ps"
+                echo "      to convert page1 and page2 in pdf format file." 
+                echo
+                echo "   ps2pdf page1.ps page2.ps final.pdf"
+                echo "      to merge page1 and page2 as a multipage pdf file." 
+                echo
+                echo "   ps2pdf \`ls -rt metafile.ps\` final.pdf"
+                echo "      to merge postscript files sorted by date of creation as a multipage pdf file." 
+                echo
+                echo "----------------------------------------------------------------------------"
+                exit ;;
+        -v|--verbose)
+                verbose=1
+                shift ;;
+        -k|--keep_ps)
+                keep_ps_option=1
+                shift ;;
+        -l|--landscape)
+                landscape=1
+                shift ;;
+        -m|--modify_ps)
+                modify_ps_option=1
+                shift ;;
+        -*)
+                ps2pdf -h
+                exit ;;
+        *)
+                break ;;
+
+        esac
+done
+ 
+if [ $# -lt 1 ] ; then
+        $FER_FAST/ps2pdf -h
+        exit
+fi
+
+#---------------------------------------------
+function PRINT {
+if [ $verbose -eq 1 ] ; then
+   echo "$1"
+fi;
+}
+
+#--------------------------------------
+PRINT "*********************************"
+PRINT "ps2pdf informations"
+
+#--------------------------------------
+nb_ps_files=1
+for file in $@ ; do
+    if [ $nb_ps_files -eq $# ] && (echo $file | grep -si "\.pdf" > /dev/null) ; then
+          merge=1
+          merged_pdf_file=$file
+    else
+       ps_files="$ps_files $file"
+    fi
+    let nb_ps_files=nb_ps_files+1
+done
+
+pdf_files=""
+ps_files_modified=""
+
+#--------------------------------------
+# Add Bounding Box informations
+for ps_file in $ps_files ; do
+        ps_file_modified=`basename $ps_file .ps`_modified.ps
+	bbinfo_init=`gs -q -dNOPAUSE -dBATCH -sDEVICE=bbox $ps_file 2>&1 | grep "%%BoundingBox"`
+	bbinfo_values=`echo $bbinfo_init | cut -d: -f 2`
+	PRINT "Bounding Box:" 
+	PRINT "              $bbinfo_init"
+	PRINT "              $bbinfo_values"
+	echo "%!PS-Adobe-3.0" > $ps_file_modified
+	echo "$bbinfo_init" >> $ps_file_modified
+	echo "[/CropBox [$bbinfo_values] /PAGES pdfmark" >> $ps_file_modified
+	tail -n +2 $ps_file >> $ps_file_modified
+	ps_files_modified="$ps_files_modified $ps_file_modified"
+done
+
+#--------------------------------------
+# one pdf file foreach ps file
+if [ $merge -ne 1 ] ; then
+   for ps_file in $ps_files ; do
+       pdf_file=`basename $ps_file .ps`.pdf
+       ps_file_modified=`basename $ps_file .ps`_modified.ps
+       PRINT "gs -q -dNOPAUSE -dBATCH -dDOPDFMARKS -sDEVICE=pdfwrite -sOutputFile=$pdf_file $ps_file_modified"
+       gs -q -dNOPAUSE -dBATCH -dDOPDFMARKS -sDEVICE=pdfwrite -sOutputFile=$pdf_file $ps_file_modified
+       if [[ -f $pdf_file && -s $pdf_file ]] ; then
+          PRINT "ps2pdf...Convert successfully $ps_file to $pdf_file"
+       else 
+          PRINT "ps2pdf...Program gs cannot convert $ps_file to pdf!"
+       fi 
+   done 
+   
+else
+# merge all ps files into one single pdf file
+   gs -q -dNOPAUSE -dBATCH -dDOPDFMARKS -sDEVICE=pdfwrite -sOutputFile=$merged_pdf_file $ps_files_modified
+   if [[ -f $merged_pdf_file && -s $merged_pdf_file ]] ; then
+      PRINT "ps2pdf...Convert successfully $ps_files to $merged_pdf_file"
+   else 
+      PRINT "ps2pdf...Program gs cannot convert $ps_files to pdf!"
+      exit
+   fi
+fi
+
+#--------------------------------------
+# modify original ps files
+if [ $modify_ps_option -eq 1 ] ; then
+   for ps_file in $ps_files ; do
+       ps_file_modified=`basename $ps_file .ps`_modified.ps
+       mv $ps_file_modified $ps_file
+       PRINT "ps2pdf...Modify original ps files"
+   done
+fi
+
+#--------------------------------------
+# keep modified ps files
+if [ $keep_ps_option -ne 1 ] ; then
+   rm -f $ps_files_modified
+   PRINT "ps2pdf...Remove intermediate ps files"
+fi
+
+#--------------------------------------
+if [[ $landscape -eq 1 && $merge -eq 1 ]] ; then
+   pdf2pdf -q -p "landscape=true,angle=-90" -o ps2pdf_$$ $merged_pdf_file
+   mv ps2pdf_$$.pdf $merged_pdf_file
+   rm -rf ps2pdf_$$*
+   PRINT "ps2pdf...Landscape transformation using pdf2pdf"
+fi
+
+#--------------------------------------
+PRINT "*********************************"
+
+

@@ -1,0 +1,23 @@
+!**************************************************************
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@cea.fr
+! $Date: 2009/05/14 15:04:00 $
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.4 $
+! History:
+! Modification:
+!**************************************************************
+
+!===================================================
+! Define RRR, GGG, BBB variables
+go set_rgb_from_hexa ABCDEF 
+
+! Set color 2 with a new color
+ppl color 2, `RRR`, `GGG`, `BBB`
+
+plot/color=2/thick=3/i=1:100 sin(i/5)
+
+!===================================================
+go set_rgb_from_namecolor "indian red"
+ppl color 3, `RRR`, `GGG`, `BBB`
+plot/color=3/thick=3/i=1:100/over cos(i/5)

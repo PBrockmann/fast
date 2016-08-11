@@ -1,0 +1,9 @@
+\cancel mode verify
+
+message/continue *********************************
+message/continue FAST (Ferret Analysis Scripting Toolbox)
+message/continue Released as $Name: FAST_608_1_3 $
+message/continue More informations: http://dods.ipsl.jussieu.fr/fast
+message/continue *********************************
+
+set mode verify

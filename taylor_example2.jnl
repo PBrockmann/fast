@@ -1,0 +1,27 @@
+!**************************************************************
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: $
+! $Name: $
+! $Revision: $
+! History:
+! Modification:
+!
+!**************************************************************
+
+set window 1
+
+go taylor_frame
+
+let a=xsequence({2.4, 0.8, 2.3 })
+let b=xsequence({0.6, 0.9, 0.8})
+let c=xsequence({"Mod1","Mod2","Mod3"})
+
+list a,b,c
+
+repeat/i=1:`a[i=@ngd]` (go taylor_polymark a b /line/fill/pal=red;  go taylor_label a b "_<NL>`c`")
+
+! http://ferret.pmel.noaa.gov/Ferret/documentation/pyferret/documentation/users-guide/commands-reference/SET#pyferret_embedded_symbols
+! with pyferret use <&nbsp> instead of _
+!repeat/i=1:`a[i=@ngd]` (go taylor_polymark a b /line/fill/pal=red;  go taylor_label a b "<&nbsp><NL>`c`")
+

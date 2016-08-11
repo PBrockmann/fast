@@ -1,0 +1,22 @@
+!**************************************************************
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:03:59 $
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.4 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+!============================================
+set window 1
+go margins_set 20 20 15 25
+
+!============================================
+use levitus_climatology
+shade/nokey temp[k=1]
+
+!============================================
+go boxfilled_put 80 35 85 38 /over/nolab/line/fill/lev 16 "@AS Level 16"
+go boxfilled_put 80 30 85 33 /over/nolab/line/fill/lev 3 "@AS This a legend<NL> for level 3" 0.3 0

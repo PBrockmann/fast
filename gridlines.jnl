@@ -1,0 +1,41 @@
+\cancel mode verify  
+
+!**************************************************************
+! Description: Plot over the grid of a plot 
+!
+! Usage: go gridlines delta [PLOT qualifiers]
+!
+! Example: 
+!  yes? go gridlines 20 
+!  will plot every 20 on the physical xaxis a vertical bar
+!  and will plot every 20 on the physical yaxis a horizontal bar
+!  yes? go gridlines 20 /dash=(0.3,0.1,0.3,0.1)/color=red/thick=1
+!
+! Notes: 
+!
+! Calls: go hgridlines
+!        go vgridlines
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.26 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+query/ignore $1%<Usage: go gridlines delta [plot qualifiers]%
+
+def sym gridlines_qualifiers=$2%/DASH=(0.1,0.05,0.1,0.05)%
+
+go hgridlines $1 ($gridlines_qualifiers)
+go vgridlines $1 ($gridlines_qualifiers)
+
+!**************************************************************
+cancel sym gridlines_qualifiers
+
+!**************************************************************
+set mode/last verify
+

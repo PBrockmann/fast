@@ -1,0 +1,26 @@
+!**************************************************************
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@cea.fr
+! $Date: $ 
+! $Name: $
+! $Revision: $
+!
+!**************************************************************
+
+!===============================================
+use levitus_climatology
+
+!===============================================
+let var=temp
+
+!===============================================
+let v1 = SAMPLEXY(var,xpts,ypts)
+let v2 = RESHAPE(v1, outgrid)
+
+!===============================================
+set w 1; shade/pal=grads/lev=(-INF)(0,28,1)(INF) var[k=1]; go define_section 100 ; def axis/X/units="degrees_east" myaxis=xpts ; let outgrid = z[gz=var] + x[gx=myaxis] ; set w 2 ; shade/pal=grads/lev=(-INF)(0,28,1)(INF) v2 
+
+pause
+
+!===============================================
+set w 1; shade/pal=grads/lev=(-INF)(0,28,1)(INF) var[k=1]; go define_section 100 ; def axis/Y/units="degrees_north" myaxis=ypts ; let outgrid = z[gz=var] + y[gy=myaxis]  ;  set w 2 ; shade/pal=grads/lev=(-INF)(0,28,1)(INF) v2

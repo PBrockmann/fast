@@ -1,0 +1,260 @@
+#!/bin/ksh
+
+#**************************************************************
+# Author: Patrick Brockmann
+# Contact: Patrick.Brockmann@ipsl.jussieu.fr
+# $Date: 2009/05/14 15:04:00 $
+# $Name: FAST_608_1_3 $
+# $Revision: 1.1.1.7 $
+# History:
+# Modification:
+# Notes: * png files must be PseudoClass color
+#                         --> use "png8:filename" if needed
+#        * frames should have all the same size
+#        * logofile proposed (see *.sc files in swfs directory) :
+#           To add your logo, use swfc to create a swf file in the swfs directory.
+#           You can also use pdf2swf to create the swf logofile.
+#        * if gif files are used then a conversion to png8 format is made;
+#          converted files are removed at end of script
+#
+#**************************************************************
+
+make_flashdir=`whence $0`.swfs
+
+logofile="none"
+putshadow=0
+interval=400
+fr=0
+
+#---------------------------------------------
+while [ $# -ne 0 ]
+do
+	case $1 in
+	-p|--putshadow)
+		putshadow=1
+		shift ;;
+	-i|--interval)
+		interval=$2
+		shift 2 ;;
+	-l|--logo)
+		logofile=$2
+		if [ ! -f $logofile ] ; then 
+			echo "--> ERROR! $logofile does NOT exist!"
+			exit
+		fi
+		shift 2 ;;
+       -h|--help|-help)
+		echo "----------------------------------------------------------------------------"
+		echo "Usage: make_flash [--putshadow] [--logo dir/logofile.swf] [--interval 400]"
+		echo "                  output.swf"
+		echo "                  title1_text title2_text bottom_text"
+		echo "                  file.png [...]"
+		echo 
+		echo "Options:"
+		echo "   -p, --putshadow"
+		echo "       Put a shadow frame below images."
+		echo "   -i, --interval"
+		echo "       Set the interval between each frame in milliseconds (default is 400)."
+		echo "   -l, --logo"
+		echo "       Add a logo in the bottom right of the animation."
+		echo "       The logo file must be in swf (use pdf2swf if needed)."
+		echo 
+		echo "logofile proposed:" 
+		echo "    - CEA (Commisariat à l'energie Atomique)"
+		echo "         --logo $make_flashdir/cea.swf"
+		echo "    - IPSL (Institut Pierre Simon Laplace)"
+		echo "         --logo $make_flashdir/ipsl.swf"
+		echo "    - IPSL/IGCMG (IPSL Groupe Climat et Modelisation Global)"
+		echo "         --logo $make_flashdir/ipsl_igcmg_fr.swf"
+		echo "    - IPSL/IGCMG (IPSL Global Climate Modelling Group)"
+		echo "         --logo $make_flashdir/ipsl_igcmg_us.swf"
+		echo 
+		echo "Prerequisites:"
+		echo "    - identify from ImageMagick (http://www.imagemagick.org/)"
+		echo "    - png2swf, swfc from SWFtools (http://www.quiss.org/swftools/)"
+		echo 
+		echo "Notes:"
+		echo "    - To learn more about swf tools used in this script, go to:"
+		echo "        http://www.quiss.org/swftools/"
+		echo "    - To get the latest Flash Player plugin, go to:"
+		echo "        http://www.adobe.com/shockwave/download/download.cgi?P1_Prod_Version=ShockwaveFlash"
+		echo "    - To include a Flash Movie in PowerPoint 2000, read the following note:"
+		echo "        Using Flash movies in PowerPoint 2000"
+		echo "        http://www.adobe.com/go/tn_14235"
+		echo 
+		echo "Examples :"
+		echo 
+		echo "Convert a multiple images gif file to png files :"
+		echo "> convert animate.gif frame_%03d.png"
+		echo 
+		echo "or combine 2 images (2 columns, 1 row) to png files :" 
+		echo "> montage -verbose -geometry 100%x100% -tile 2x1 myfiles.png [...] frame_%03d.png"
+		echo 
+		echo "or combine 4 images (2 columns, 2 rows) after having sort"
+		echo "following the 4th part of their names to png files :"
+		echo "> montage -geometry 100%x100% -tile 2x2  \`ls -1 sresb1_tas_*[0-9].png sresb1_pr_*[0-9].png  | sort +4 -t '_'\` frame_%03d.png"
+		echo 
+		echo "then produce a flash animation file :"
+		echo "> make_flash --logo ${make_flashdir}/ipsl_igcmg_fr.swf final.swf \"Titre 1\" \"Titre 2\" \"Contact: Your.Name@Earth.Universe\" frame_*.png"
+		echo "----------------------------------------------------------------------------"
+		echo 
+		exit ;;
+	-*)
+		make_flash -h
+		exit ;;
+	*)
+		break ;;
+	esac
+done
+
+if [ $# -lt 5 ] ; then
+	make_flash -h
+	exit
+fi
+
+#---------------------------------------------
+output_swf_file=$1
+title1=$2
+title2=$3
+bottom_text=$4
+
+#---------------------------------------------
+shift 4 
+
+#============================================================
+
+#------------------------
+list_files_to_delete=0
+tmp_files="$@"
+for tmp_file in ${tmp_files[*]} ; do
+	echo $tmp_file
+	if [ ! -f $tmp_file ] ; then 
+		echo "--> ERROR! $tmp_file does NOT exist!"
+		exit
+	fi
+
+	case `identify -format "%m" $tmp_file` in
+	JPEG|GIF)
+		list_files_to_delete=1
+		convert -colors 256 $tmp_file png8:${tmp_file}.png
+		list_files="$list_files ${tmp_file}.png" 
+		echo convert $tmp_file to ${tmp_file}.png ;;
+	PNG)
+		list_files="$list_files $tmp_file" ;;
+	*)
+		echo "--> ERROR! $tmp_file is NOT a 8bit PNG file !"
+		exit ;;
+	esac	
+done
+
+#------------------------
+png2swf -r 50 -o swf_toembed_$$.swf ${list_files[*]}
+
+#------------------------
+# Get size of an image composed
+width=`identify -format "%w" $1` 
+height=`identify -format "%h" $1`
+
+#------------------------
+rm -f $output
+
+#------------------------
+# SWF animation input file to embed (created by png2swf)
+I1I1=swf_toembed_$$.swf
+# SWF animation output file
+O1O1=$output_swf_file
+
+# Main title
+T1T1=$title1
+# Sub title
+T2T2=$title2
+# Bottom text 
+T3T3=$bottom_text
+
+# width of the image
+W0W0=$width
+# height of the image
+H0H0=$height
+
+# interval between frames
+IIIIII=$interval
+
+# total width of frame 
+W1W1=`echo $width | awk '{print $1+20}'`
+# total height of frame 
+H1H1=`echo $height | awk '{print $1+190}'`
+
+# vertical position of 1st row of buttons 
+BY1BY1=`echo $height | awk '{print $1+110}'`
+# vertical position of 2nd row of buttons 
+BY2BY2=`echo $height | awk '{print $1+140}'`
+
+#------------------------------
+# put shadow box 
+if [ $putshadow -eq 1 ] ; then
+	# S1S1 removed so shadow box is drawn
+	S1S1=""
+else
+	# S1S1 replaced by a comment character 
+	S1S1="#"
+fi;
+
+#------------------------------
+# put logo
+if [ $logofile = "none" ] ; then
+	# LG1LG1 replaced by a comment character 
+	LG1LG1="#"
+else
+	# LG1LG1 replaced by a null character 
+	LG1LG1=""
+	LG2LG2=$logofile
+fi;
+
+# horizontal position of logo
+LX1LX1=`echo $width | awk '{print $1-60}'`
+# vertical position of logo 
+LY1LY1=`echo $height | awk '{print $1+130}'`
+
+# vertical position of bottom text
+LY2LY2=`echo $height | awk '{print $1+180}'`
+
+#------------------------------
+sed \
+	-e "s%MAKE_FLASHDIR%${make_flashdir}%" \
+	-e "s%I1I1%$I1I1%" \
+	-e "s%O1O1%$O1O1%" \
+	-e "s%W0W0%$W0W0%" \
+	-e "s%H0H0%$H0H0%" \
+	-e "s%T1T1%$T1T1%" \
+	-e "s%T2T2%$T2T2%" \
+	-e "s%T3T3%$T3T3%" \
+	-e "s%IIIIII%$IIIIII%" \
+	-e "s%BY1BY1%$BY1BY1%" \
+	-e "s%BY2BY2%$BY2BY2%" \
+	-e "s%LG1LG1%$LG1LG1%" \
+	-e "s%LG2LG2%$LG2LG2%" \
+	-e "s%LX1LX1%$LX1LX1%" \
+	-e "s%LY1LY1%$LY1LY1%" \
+	-e "s%LY2LY2%$LY2LY2%" \
+	-e "s%W1W1%$W1W1%" \
+	-e "s%H1H1%$H1H1%" \
+	-e "s%S1S1%$S1S1%" \
+	${make_flashdir}/moviecontrol_template.sc > swf_withcontrols_$$.sc
+	
+swfc -v swf_withcontrols_$$.sc
+
+if [ -f $O1O1 ] ; then 
+	echo "$O1O1 created!"
+fi
+
+rm -f swf_toembed_$$.swf
+rm -f swf_withcontrols_$$.*
+
+#------------------------------
+if [ $list_files_to_delete -eq 1 ] ; then
+	rm -rf ${list_files[*]}
+   fi
+
+
+#============================================================
+

@@ -1,0 +1,46 @@
+#!/bin/ksh
+
+#**************************************************************
+# Description: Reverse a ferret file spectrum 
+#
+# Usage: cat file.spk | reverse_filespk > newfile.spk 
+#
+# Notes: 
+#  * Do not work if comments lines (!...) so
+#    remove them first
+#    
+#
+# Options: 
+#
+# Example:
+#
+# Calls: 
+#
+# Author: Patrick Brockmann
+# Contact: Patrick.Brockmann@ipsl.jussieu.fr
+# $Date: 2009/05/14 15:04:00 $
+# $Name: FAST_608_1_3 $
+# $Revision: 1.1.1.25 $
+# History:
+# Modification:
+#
+#**************************************************************
+
+
+tempfile=reverse_filespk_$$
+
+tee $tempfile > /dev/null 2>&1
+
+nblines=`cat $tempfile | wc -l` 
+
+cat $tempfile |  awk "{if (NR == 1) print \$0}"
+
+curline=2
+while [ $curline -le $nblines ] ; do
+cat $tempfile | awk "{if (NR == $curline) printf (\"%5.1f \", \$1)}"
+cat $tempfile |  awk "{if (NR == $nblines-$curline+2) printf (\"%5.1f %5.1f %5.1f\n\", \$2, \$3, \$4)}"
+let curline=curline+1
+done 
+
+rm -f $tempfile > /dev/null 2>&1
+

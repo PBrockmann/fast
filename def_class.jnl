@@ -1,0 +1,55 @@
+\cancel mode verify
+
+!#############################################
+let var1=($01)
+def sym var1min=($02)
+def sym var1max=($03)
+def sym var1delta=($04)
+def sym modulo=($05%0%)
+
+let var2=($06)
+def sym fileout=($07)
+
+!#############################################
+cancel var mask_*
+
+!------------------------------------
+if `($modulo) ne 1` then
+	def sym nbclass=`int(abs(($var1max)-($var1min))/($var1delta))+1`
+	repeat/name=class/range=2:($nbclass):1 ( \
+		let threshold=`($var1min)+($var1delta)*(class-1)` ;\
+		if `class eq 2` then \ 
+			let mask_`class-1,zw=2`=if var1 le ($var1min) then 1 \
+		endif ;\ 
+		let mask_`class,zw=2`=if var1 gt `threshold` and var1 le `(threshold+($var1delta))` then 1 ;\
+		if `class eq ($nbclass)` then \ 
+			let mask_`class,zw=2`=if var1 gt `threshold` then 1 \
+		endif ;\ 
+	)
+!------------------------------------
+else ! modulo
+	def sym nbclass=`int(abs(($var1max)-($var1min))/($var1delta))`
+	repeat/name=class/range=2:($nbclass):1 ( \
+		let threshold=`($var1min)+($var1delta)*(class-1)` ;\
+		if `class eq 2` then \
+			let mask_`class-1,zw=2`=if var1 gt ($var1max) or var1 le `threshold` then 1 \
+		endif ;\ 
+		let mask_`class,zw=2`=if var1 gt `threshold` and var1 le `(threshold+($var1delta))` then 1 ;\
+	)
+endif
+
+!#############################################
+cancel var var_*
+
+sp rm -f ($fileout)
+repeat/name=class/range=1:($nbclass):1 ( \
+	let var_`class,zw=2`=var2*mask_`class,zw=2` ;\
+	list/quiet/nohead/norowlab/append/file="($fileout)" `class`, missing(var_`class,zw=2`[i=@ngd,j=@ngd,l=@sum],0), missing(var_`class,zw=2`[i=@ave,j=@ave,l=@ave],0), missing(var_`class,zw=2`[i=@var,j=@var,l=@var],0),  missing(mask_`class,zw=2`[i=@din,j=@din,l=@din],0)  ;\
+)
+
+say #######################
+say `($nbclass)` masked variables defines as follows:
+show var mask_* var_*
+
+!#############################################
+set mode/last verify

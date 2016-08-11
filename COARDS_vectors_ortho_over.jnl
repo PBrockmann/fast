@@ -1,0 +1,69 @@
+\cancel mode verify
+
+!**************************************************************
+! Description:
+!
+! Usage:
+!
+! Example:
+!
+! Notes:
+!
+! Calls:
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@cea.fr
+! $Date: 2009/05/14 15:03:59 $
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.3 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+let ME_CM = ($01)
+let ME_CP = ($02) 
+let ME_vec_est = ($03) 
+let ME_vec_nor = ($04) 
+def sym ME_skip = ($05%1%)
+def sym ME_length = ($06%0.1%)
+
+!-----------------------------------------------
+LET ME_var1=ME_vec_est
+LET x_vec = X[GX=ME_var1] + 0*Y[GY=ME_var1]
+LET y_vec = 0*X[GX=ME_var1] + Y[GY=ME_var1]
+
+!-----------------------------------------------
+go my_mp_orthographic `ME_CM` `ME_CP` x_vec y_vec 
+
+!-----------------------------------------------
+let ME_dl = ME_vec_est * ME_mp_mask / COS(ME_mp_phi)
+let ME_dp = ME_vec_nor * ME_mp_mask
+let ME_dx = ME_mp_R*ME_mp_bigK*((-1)*SIN(ME_mp_phi)*SIN(ME_mp_lambda-ME_mp_lambda0)*ME_dp + COS(ME_mp_phi)*COS(ME_mp_lambda-ME_mp_lambda0)*ME_dl)
+let ME_dy = ME_mp_R*ME_mp_bigK*(COS(ME_mp_phi1)*COS(ME_mp_phi)*ME_dp+SIN(ME_mp_phi1)*SIN(ME_mp_phi)*COS(ME_mp_lambda-ME_mp_lambda0)*ME_dp+SIN(ME_mp_phi1)*COS(ME_mp_phi)*SIN(ME_mp_lambda-ME_mp_lambda0)*ME_dl)
+
+!-----------------------------------------------
+! La commande vector est plus lente et surtout bugguee (vecteurs tordus !) v570
+let ME_filename_main="vect_"
+let ME_filename_suffix={spawn:" echo $PPID"}
+let ME_filename=ME_filename_main+ME_filename_suffix
+sp rm -f `ME_filename`.dat `ME_filename`.raw
+LIST/QUIET/NOHEAD/FORMAT=(2F12.4,2E12.3)/FILE=`ME_filename`.raw ME_x_page, ME_y_page, ME_dx, ME_dy
+! selection suivant le parametre skip (saut de selection); par defaut 1/1
+if `($ME_skip) ne 1` then
+        sp cat `ME_filename`.raw | awk 'NR%($ME_skip) {print}' > `ME_filename`.skip
+        sp mv -f `ME_filename`.skip `ME_filename`.raw
+endif
+sp grep -v "E+35" `ME_filename`.raw > `ME_filename`.dat
+sp echo "0 0 0 0" >> `ME_filename`.dat
+! Le script my_scattered_vectors correspond a scattered_vectors + retrait variables definies
+GO my_scattered_vectors `ME_filename`.dat ($ME_length) clock
+sp rm -f `ME_filename`.dat `ME_filename`.raw
+
+!-----------------------------------------------
+cancel variable ME_*
+cancel symbol ME_*
+
+!**************************************************
+set mode/last verify
+

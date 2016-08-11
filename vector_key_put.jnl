@@ -1,0 +1,108 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Put a vector key of a length expressed in inches 
+!  at a position expressed as percentage of width and height 
+!  of the viewport over a plot. 
+!
+! Usage: go vector_key_put.jnl xpos1 ypos1 
+!
+! Notes: * Default length of vector key is 0.5 inches
+!        * See my_scattered_vectors.jnl and definitions of ME_haf_inch_value
+!
+! Calls: 
+!
+! Author: Patrick Brockmann 
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.9 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+query/ignore $1%<Usage: go vector_key_put.jnl xpos1 ypos1 [length=0.5]%
+query/ignore $2%<Usage: go vector_key_put.jnl xpos1 ypos1 [length=0.5]%
+
+!**************************************************************
+
+def sym ME_xpos=`($VP_WIDTH) * ($1)/100 - ($PPL$XORG)`
+def sym ME_ypos=`($VP_HEIGHT) * ($2)/100 - ($PPL$YORG)`
+def sym ME_length=$3%0.5%
+
+!**************************************************************
+! arrow
+def sym ME_xpos1=($ME_xpos)
+def sym ME_ypos1=($ME_ypos)
+def sym ME_xpos2=`($ME_xpos)+($ME_length)`
+def sym ME_ypos2=($ME_ypos)
+
+! arrow
+!**************************************************************
+let ME_PI = atan(1.)*4.
+let ME_DEG2RAD = ME_PI/180.
+
+!**************************************************************
+def sym ME_nbvectors=1
+
+let ME_x1 = ($ME_xpos1)
+let ME_y1 = ($ME_ypos1) 
+let ME_x2 = ($ME_xpos2)
+let ME_y2 = ($ME_ypos2) 
+let ME_u = `($ME_xpos2) - ($ME_xpos1)` 
+let ME_v = `($ME_ypos2) - ($ME_ypos1)`
+
+!-----------------------
+! vector points from x1,y1 with components u,v
+!           2 
+!         / | \
+!        a  |  b
+!           | 
+!           | 
+!           | 
+!           1 
+!-----------------------
+def sym ME_head_size=0.3                 ! in inches 
+let ME_head_angle = 30*ME_DEG2RAD        ! in degrees
+let ME_size = 0.1 			 ! in inches
+let ME_alpha = atan2(ME_v,ME_u)
+
+!-- point a
+let ME_head_xa0 = cos(ME_alpha - ME_head_angle) * ME_size * 1/cos(ME_head_angle)
+let ME_head_ya0 = sin(ME_alpha - ME_head_angle) * ME_size * 1/cos(ME_head_angle)
+
+let ME_head_xa1 = ME_x2 - ME_head_xa0  
+let ME_head_ya1 = ME_y2 - ME_head_ya0 
+
+!-- point b
+let ME_head_xb0 = sin(ME_alpha + ME_head_angle - ME_PI/2.) * ME_size * 1/cos(ME_head_angle)
+let ME_head_yb0 = cos(ME_alpha + ME_head_angle - ME_PI/2.) * ME_size * 1/cos(ME_head_angle)
+
+let ME_head_xb1 = ME_x2 + ME_head_xb0 
+let ME_head_yb1 = ME_y2 - ME_head_yb0 
+
+! arrow color
+ppl pen 1,($ME_linecolor)
+
+! line s-e
+ppl aline/nouser 1,($ME_xpos1),($ME_ypos1),($ME_xpos2),($ME_ypos2)
+
+! line e-a
+ppl aline/nouser 1,($ME_xpos2),($ME_ypos2),`ME_head_xa1`,`ME_head_ya1`
+
+! line e-b
+ppl aline/nouser 1,($ME_xpos2),($ME_ypos2),`ME_head_xb1`,`ME_head_yb1`
+
+! line a-b
+!ppl aline/nouser 1,`ME_head_xa1`,`ME_head_ya1`,`ME_head_xb1`,`ME_head_yb1`
+
+! Return to normal
+ppl pen 1,1
+ 
+!**************************************************************
+cancel sym ME_*
+cancel var ME_*
+
+!**************************************************************
+set mode/last verify

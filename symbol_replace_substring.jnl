@@ -1,0 +1,43 @@
+!**************************************************************
+! Description: Replace once in a string substring by a new substring
+!
+! Usage: called by symbol_replace_and_define.jnl
+!
+! Notes:
+!  * ME_str, ME_sstr and ME_sstr_new must be defined previously according to
+!    str = initial string
+!    str = subtring to replace
+!    sstr_new = new substring 
+!
+! Example:
+!  yes? def sym ME_str=this is a string old 2 old
+!  yes? def sym ME_sstr=old
+!  yes? def sym ME_sstr_new=new
+!  yes? go symbol_replace_substring
+!  yes? show sym ME_str
+!  
+! Calls: 
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.25 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+ppl set ME_str_le $length(ME_str)
+ppl set ME_sstr_le $length(ME_sstr)
+
+ppl set ME_sstr_lo $locate(($ME_sstr),ME_str)
+
+ppl set ME_str_p1 $extract(1,`($ME_sstr_lo)-1`,ME_str)
+ppl set ME_str_p2 $extract(`($ME_sstr_lo)+($ME_sstr_le)`,`($ME_str_le)-($ME_sstr_lo)-($ME_sstr_le)+1`,ME_str)
+
+ppl set ME_str "($ME_str_p1)($ME_sstr_new)($ME_str_p2)"
+
+
+!**************************************************************
+

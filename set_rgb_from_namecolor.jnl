@@ -1,0 +1,77 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Define RRR, GGG, BBB variables from a RGB color name  
+!
+! Usage: go set_rgb_from_namecolor "ColorName"
+!
+! Example:
+!          yes? go set_rgb_from_namecolor "MediumVioletRed" 
+!          ==> will give correct answer because unique and existing
+!          whereas
+!          yes? go set_rgb_from_namecolor "dummy"
+!          ==> will give no values
+!          yes? go set_rgb_from_namecolor "white"
+!          ==> will give not unique values, then use script set_rgb_from_values
+! 
+! Note: - For now ppl 0 cannot be redefined other than blach or white
+!       - Spawn cannot handle multiple character < ' > so pass by with get_1st.awk
+!         Ideally would have been written :
+!         let RRR_str={spawn: 'grep ($color) $FER_FAST/rgb.txt | awk '{print $1}'}
+!       - Test on return values of grep command is needed because
+!         of a bug in `var,return=isize` so must use tricks such as strlen and @NGD
+!       - $FER_FAST/rgb.txt is a copy of /usr/lib/X11/rgb.txt
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@cea.fr
+! $Date: 2009/05/14 15:04:00 $
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.5 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+def sym color=($01)
+
+! Color names and corresponding values can be found in /usr/lib/X11/rgb.txt
+! Transformed from [0:255] to [0:100]
+let COLOR_values={spawn: 'grep "($color)" $FER_FAST/rgb.txt'}
+let COLOR_values_list=strlen(COLOR_values)
+let COLOR_values_list0=strlen(COLOR_values[i=1])
+let COLOR_values_list_nb=`COLOR_values_list[i=@NGD]`
+
+if `COLOR_values_list_nb eq 1 and COLOR_values_list0 ne 0` then
+
+!----------------------
+!say Color name found:
+!list/nohead COLOR_values
+
+let RRR_str={spawn: 'grep "($color)" $FER_FAST/rgb.txt | awk -f $FER_FAST/get_1st.awk'}
+let GGG_str={spawn: 'grep "($color)" $FER_FAST/rgb.txt | awk -f $FER_FAST/get_2nd.awk'} 
+let BBB_str={spawn: 'grep "($color)" $FER_FAST/rgb.txt | awk -f $FER_FAST/get_3rd.awk'}
+let RRR=`RRR_str`/2.55
+let GGG=`GGG_str`/2.55
+let BBB=`BBB_str`/2.55
+
+cancel var RRR_str, GGG_str, BBB_str
+
+!----------------------
+
+else
+
+!----------------------
+say Warning\! Color name must be unique or existing
+say Select color from r,g,b values
+say Color names found:
+list/nohead COLOR_values
+
+!----------------------
+endif
+
+!----------------------
+cancel var COLOR_values*
+cancel sym color
+
+!----------------------
+set mode/last verify

@@ -1,0 +1,83 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Put a logo in a viewport 
+!
+! Usage: go logo_put logofile [viewport name=LogoR]
+!
+! Notes:
+!  * lofile are given by ls logo_*.nc
+!  * To put your logo, follow the following steps 
+!  With XV:	1) reverse vertically your image  
+!               2) save as PBM/PGM/PPM (ascii) format
+!                  with Greyscale colors
+!               3) note with XV info (press key i) 
+!                  xxx = number of horizontal pixels
+!                  yyy = number of vertical pixels
+!  With Ferret:
+!  Read logo from a pgm ascii image
+!  define axis/x=1:xxx:1 xlogo 		! xxx = nb of hor. pixels 
+!  define axis/y=1:yyy:1 ylogo		! yyy = nb of ver. pixels 
+!  define grid/x=xlogo/y=ylogo glogo
+!  file/var=readlogo/col=17/grid=glogo/skip=4 logo_fff.pgm
+!     !Needed if first line read is partially wrong
+!     !let logo=if i ge xxx and j ge yyy then 255 else readlogo
+!     !set var/title=logo logo 			!  
+!  save/clobber/file=logo_fff.nc logo
+!
+! Calls:
+!
+! Author: Patrick Brockmann 
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.26 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+query/ignore $1%<Usage: go logo_put logofile [viewport name=LogoR]%
+  
+!**************************************************************
+set data/save
+
+use logo_$1.nc
+
+if $2"false|*>true" then
+   set view $2
+else
+   def view/xlim=0.8,1./ylim=0.9,1. LogoR
+   set view LogoR
+endif
+
+! horiz./vertic. pixels
+def sym ME_hsize=`logo[i=@ngd,j=1]`
+def sym ME_vsize=`logo[i=1,j=@ngd]`
+def sym ME_ratio=`($ME_hsize)/($ME_vsize)`
+
+! Define lengths of axes according to the size of the logo
+def sym ME_width = `0.9*min(($vp_width),($vp_height)*($ME_ratio))`
+def sym ME_height = `($ME_width)/($ME_ratio)`
+
+!say ($vp_width), ($vp_height), ($ME_width), ($ME_height)
+
+ppl axlen ($ME_width),($ME_height)              
+
+! Place the logo centered            
+ppl origin `(($vp_width)-($ME_width))/2.`,`(($vp_height)-($ME_height))/2.`
+
+shade/pattern=solid/palette=bw.spk/noaxes/nolab/nokey logo
+
+!**************************************************************
+cancel sym ME_*
+
+!**************************************************************
+cancel data logo_$1.nc
+
+set data/restore
+
+!**************************************************************
+set mode/last verify
+
+

@@ -1,0 +1,119 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Put a key color bar
+!
+! Usage: go colorbar_put [-h] [xstart] [xend] [ystart] [yend] [character height=0.5] [SHADE qualifiers] [inc=1]
+! 
+! Default usage: 
+!  * horizontal: [xstart=10] [xend=90] [ystart=10] [yend=30]
+!  * vertical: [xstart=10] [xend=30] [ystart=10] [yend=90]
+!
+! Notes: 
+!  * Must be called after a shade or fill plot
+!  * Caracter height is expressed in cm (default=0.5)
+!
+! Calls: go invisible 
+! 
+! Example:
+!          yes? go page_new -li 2 1
+!          yes? set v 1
+!          yes? go colorbar_put 10 20 10 90 0.5 /pal=grads 1
+!          yes? set v 2
+!          yes? go colorbar_put 10 20 10 90 0.5 /pal=grads 2
+!
+! Author: Patrick Brockmann 
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr 
+! $Date: 2009/05/14 15:03:59 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.28 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+
+!**************************************************************
+! From the Ferret-specific PPLUS enhancements:
+!
+! SHAKEY do_key, orient, klab_siz, klab_inc, klab_dig, klab_len, kx_lo, kx_hi, ky_lo, ky_hi
+! * do_key 
+!          If 0 the key will not be displayed; if 1 the key will be displayed.  Default is 1.
+! * orient 
+!          If 0 the key is horizontal (by default on top of the figure); if 1 the key is
+!          vertical (by default on the right).  Default value is 0.
+! * klab_siz 
+!          If non-zero, klab_siz is the height of key label characters in inches.  If 0,
+!          SHADE selects a reasonable height; default is 0.
+! * klab_inc 
+!          If non-zero every klab_inc key level is labelled; if 0, SHADE selects a
+!          suitable value.  Default value is 0.
+! * klab_dig 
+!          is the number of significant digits (klab_dig > 0) or decimal places
+!          (klab_dig < 0) in the key.  Default is 3.
+! * klab_len 
+!          is the maximum number of characters in a key label.  Default is 9. 
+! * kx_lo 
+!          X-coordinate of the left side of the key, in inches.
+! * kx_hi 
+!          X-coordinate of the right side.
+! * ky_lo 
+!          Y-coordinate of the bottom of the key, in inches.
+! * ky_hi 
+!          Y-coordinate of the top.
+
+!------------------
+if $1"false|-h>true|*>false" then
+
+go invisible
+def sym ME_QUALIFIERS= /noaxes/nolab/nokey$7%/lev%
+
+def axis/x=1:360:30/units=degrees_east/modulo cb_xaxis
+def axis/y=-90:90:30/units=degrees_north cb_yaxis
+def grid/x=cb_xaxis/y=cb_yaxis cb_grid
+shade/set_up($ME_QUALIFIERS) x[g=cb_grid]*y[g=cb_grid]
+
+! horizontal
+let ME_xstart = `$2%10%*($vp_width)/100`
+let ME_xend = `$3%90%*($vp_width)/100`
+let ME_ystart = `$4%10%*($vp_height)/100`
+let ME_yend = `$5%30%*($vp_height)/100`
+let ME_labheight = `$6%0.5%/2.54`	! cm to inch
+let ME_inc = ($08%1%)
+ppl SHAKEY 1, 0, `ME_labheight`, `ME_inc`, 4, 9, `ME_xstart`,`ME_xend`,`ME_ystart`,`ME_yend`
+
+!------------------
+else
+
+go invisible
+def sym ME_QUALIFIERS= /noaxes/nolab/nokey$6%/lev%
+
+def axis/x=1:360:30/units=degrees_east/modulo cb_xaxis
+def axis/y=-90:90:30/units=degrees_north cb_yaxis
+def grid/x=cb_xaxis/y=cb_yaxis cb_grid
+shade/set_up($ME_QUALIFIERS) x[g=cb_grid]*y[g=cb_grid] 
+
+! vertical (default)
+let ME_xstart = `$1%10%*($vp_width)/100`
+let ME_xend = `$2%30%*($vp_width)/100`
+let ME_ystart = `$3%10%*($vp_height)/100`
+let ME_yend = `$4%90%*($vp_height)/100`
+let ME_labheight = `$5%0.5%/2.54`	! cm to inch
+let ME_inc = ($07%1%)
+ppl SHAKEY 1, 1, `ME_labheight`, `ME_inc`, 4, 9, `ME_xstart`,`ME_xend`,`ME_ystart`,`ME_yend`
+
+endif
+
+!------------------
+ppl shade
+
+!**************************************************************
+! return to default settings
+ppl shakey ,,0.12
+
+!**************************************************************
+cancel sym ME_*
+cancel var ME_*
+
+!**************************************************************
+set mode/last verify

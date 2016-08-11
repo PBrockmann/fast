@@ -1,0 +1,45 @@
+\cancel mode verify
+ 
+!**************************************************************
+! Description: Define 2 symbols with informations about the screen size
+!
+! Usage: go window_init
+!
+! Example:
+!  yes? go window_init
+!  yes? go page_size 480
+!
+! Notes:
+!  * Must be called as the very first call if the size of windows want
+!  to be controled by the page_size script
+!  * Based on info found in set_pixel_size script: 
+!  "Since Ferret graphics are "device independent" its window sizes are
+!  internally measured as fractions of the screen size. Thus, the
+!  "default" size (size of the first plot where no SET WINDOW commands
+!  have been issued) depends on the resolution of the screen being used"
+!
+! Calls: go viewport_show
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.26 $
+! History:
+! Modification:
+!
+!**************************************************************
+ 
+set window 
+go viewport_show
+def sym init_xpixel = ($ppl$xpixel)
+def sym init_ypixel = ($ppl$ypixel)  
+
+say \!************************************
+say \! Initial size of windows: ($init_xpixel)x($init_ypixel)
+say \! Now you can specify the size of a page in pixel by using
+say \! go page_size [-l] pixels_size 
+say \! Do not use this script again in this ferret session 
+say \!************************************
+ 
+set mode verify      

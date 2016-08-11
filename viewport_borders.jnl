@@ -1,0 +1,31 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Show borders of the active viewport
+!
+! Usage: go viewport_borders [viewport name]
+!
+! Notes:
+!
+! Calls: go margins
+!
+! Author: Patrick Brockmann 
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.13 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+if $1"false|*>true" then
+   set view $1
+endif
+
+go margins 0.001,0.001,0.001,0.001
+
+POLYGON/nolab/noaxes/line=1 {0,0,1,1,0},{0,1,1,0,0}
+
+!**************************************************************
+set mode/last verify

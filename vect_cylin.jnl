@@ -1,0 +1,101 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: plot over vectors 
+!
+! Usage: go vect_cylin lon lat u v [skip=1] [fill] [marg=30] [arrow size head=30]
+!
+! Notes:  
+!  * lon = starting longitude of the vector 
+!    lat = starting latitude of the vector 
+!    u = zonal wind component
+!    v = meridional wind component
+!  * lon, lat, u, v can be either vectors or arrays
+!  * The vector scale depends on the plot scale 
+!  * Projection used is cylindrical
+!  * Arrow size head is expressed in percent of size of the vector
+!
+! Example: 
+!  yes? let XPOS = {50,130,240,300,140,90,200,210,110,70}
+!  yes? let YPOS = {10,-50,40,20,-10,0,40,70,-35,50}
+!  yes? let U = {10,3,-12,8,15,6,-8,9,17,-8}
+!  yes? let V = {-3,5,7,2,-3,10,-15,11,9,-12}
+!  yes? go vect_cylin XPOS YPOS U V " " fill 
+!
+! Calls:
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.27 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+!**************************************************************
+! Check arguments
+!**************************************************************
+if $1"false|-h>true|*>false" then
+   message/continue
+   message/continue *********************************
+   message/continue Usage: go vect_cylin lon lat u v [skip=1] [fill] [marg=30] [arrow size head=30]
+   message/continue
+   message/continue
+   message/continue Arguments:
+   message/continue CENTRAL_MERIDIAN = [0:360]
+   message/continue CENTRAL_PARALLEL = [-90:90]
+   message/continue Zonal component of wind vector (along longitude)
+   message/continue Meridional component of wind vector (along latitude)
+   message/continue Longitude start of wind vector
+   message/continue Latitude start of wind vector
+   message/continue
+   message/continue Option:
+   message/continue skip = skipping factor, plot 1 on skip
+   message/continue fill = vector heads are filled if fill is indicated (default=not filled)
+   message/continue marg = margin (as percentage of the smallest hor/vert side of the viewport; default=30)
+   message/continue arrow size head= arrow size head is expressed in percent of size of the vector
+   message/continue
+   message/continue Example 1:
+   message/continue let XPOS = {50,130,240,300,140,90,200,210,110,70}
+   message/continue let YPOS = {10,-50,40,20,-10,0,40,70,-35,50}
+   message/continue let U = {10,3,-12,8,15,6,-8,9,17,-8}
+   message/continue let V = {-3,5,7,2,-3,10,-15,11,9,-12}
+   message/continue go vect_cylin XPOS YPOS U V " " fill  
+   message/continue
+   message/continue Example 2:
+   message/continue use monthly_navy_winds.cdf
+   message/continue let LON_WND = x[g=UWND]*y[g=UWND]*0+x[g=UWND]
+   message/continue let LAT_WND = x[g=UWND]*y[g=UWND]*0+y[g=UWND]
+   message/continue go vect_cylin LON_WND LAT_WND UWND[l=1] VWND[l=1] 10
+   message/continue *********************************
+   message/continue
+   exit
+endif            
+
+query/ignore $1%<Usage: go vect_cylin lon lat u v [skip=1] [fill] [marg=30] [arrow size head=30]%
+query/ignore $2%<Usage: go vect_cylin lon lat u v [skip=1] [fill] [marg=30] [arrow size head=30]% 
+query/ignore $3%<Usage: go vect_cylin lon lat u v [skip=1] [fill] [marg=30] [arrow size head=30]% 
+query/ignore $4%<Usage: go vect_cylin lon lat u v [skip=1] [fill] [marg=30] [arrow size head=30]% 
+
+if `$5%1% lt 1` then
+   message/continue Error\! Must have option skip > 0
+   exit
+endif
+
+let ME_lon=xsequence(($1))
+let ME_lonmin = `ME_lon[I=@MIN]`
+let ME_lonmax = `ME_lon[I=@MAX]`
+
+say --> go cont_cylin `(ME_lonmin+ME_lonmax)/2` " " $7%" "% 
+go cont_cylin `(ME_lonmin+ME_lonmax)/2` " " $7%" "% 
+say --> go vect_cylin_over $1 $2 $3 $4 $5%" "% $6%" "% $8%" "% 
+go vect_cylin_over $1 $2 $3 $4 $5%" "% $6%" "% $8%" "% 
+
+!**************************************************************
+cancel var ME_* 
+
+!**************************************************************
+set mode/last verify
+

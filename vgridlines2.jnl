@@ -1,0 +1,80 @@
+\cancel mode verify
+!**************************************************************
+! Description: Plot over the vertical grid of a plot
+!
+! Usage: go vgridlines2 hdelta [PLOT qualifiers] [time variable]
+!
+! Example:
+!  yes? plot/i=1:100 sin(i/5)
+!  yes? go vgridlines2 20 
+!  will plot every 20 on the physical xaxis a vertical bar
+!  yes? plot/i=1:100 sin(i/5)
+!  yes? go vgridlines2 20 /dash=(0.3,0.1,0.3,0.1)/color=red/thick=1
+!
+! Notes:
+!
+! Calls:
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.13 $
+! History:
+! Modification:
+!   18/04/03 Added a time variable option to bypass
+!            the bug err551_XAXIS_1.jnl
+!       yes? use monthly_navy_winds
+!       yes? plot UWND[i=@ave,j=@ave]
+!       yes? go hgridlines2 `730.5*6` " " UWND
+!       ! Not clear if correct, still a small offset (bug?)
+!       yes? go vgridlines2 0.1 " " UWND      
+!
+!**************************************************************
+
+query/ignore $1%<Usage: go vgridlines2 hdelta [plot qualifiers] [time variable]%
+
+def sym ME_qualifiers=$2%/DASH=(0.1,0.05,0.1,0.05)%
+
+!-----------------------------------
+! Relative to bug err551_XAXIS_1.jnl
+def sym ME_XAXIS_VAR=$3%XXXXX%
+
+if ($ME_XAXIS_VAR%|XXXXX>true|*>false|%) then
+        def sym ME_XAXIS_MIN=($XAXIS_MIN)
+        def sym ME_XAXIS_MAX=($XAXIS_MAX)
+else
+        let ME_XAXIS_VAR_T=t[gt=($ME_XAXIS_VAR)]
+        def sym ME_XAXIS_MIN=`ME_XAXIS_VAR_T[l=1]`
+        def sym ME_XAXIS_LEND=`ME_XAXIS_VAR_T,return=lend`
+        def sym ME_XAXIS_MAX=`ME_XAXIS_VAR_T[l=($ME_XAXIS_LEND)]`
+endif
+!-----------------------------------
+
+! y1 = first horizontal line (superior value)
+if `($YAXIS_MIN) lt 0` then
+   def sym ME_y1 = int(($YAXIS_MIN)/$1)*$1
+else
+   def sym ME_y1 = (int(($YAXIS_MIN)/$1)+1) *$1
+endif
+! y2 = last horizontal line  (inferior value)
+if `($YAXIS_MAX) lt 0` then
+   def sym ME_y2 = (int(($YAXIS_MAX)/$1)-1) *$1
+else
+   def sym ME_y2 = (int(($YAXIS_MAX)/$1)) *$1
+endif
+def sym ME_yrange = `(($ME_y2)) - (($ME_y1))`
+
+def sym ME_y = ($ME_y1) + (i-1)*$1
+def sym ME_nby = int(($ME_yrange)/$1) + 1
+
+if `($ME_nby) ge 1` then
+  repeat/i=1:`($ME_nby)`:1 ( plot/nolab/over/vs($ME_qualifiers) {($ME_XAXIS_MIN),($ME_XAXIS_MAX)},{`($ME_y)`,`($ME_y)`} )
+endif
+
+!**************************************************************
+cancel sym ME_*
+
+!**************************************************************
+set mode/last verify
+

@@ -1,0 +1,41 @@
+!**************************************************************
+! Description: Define the number of substring in a string 
+!  through the ME_nbsubstring symbol and define the position 
+!  of the last substring through ME_poslastsubstring
+!
+! Usage: called by symbol_replace_and_define.jnl
+!        called by symbol_basename_and_define.jnl
+!
+! Notes:
+!  * ME_str and ME_sstr must be defined previously according to
+!    str = initial string
+!    sstr = subtring to replace
+!
+! Example:
+!  yes? ppl set ME_str "this is a string old 2 old"
+!  yes? ppl set ME_sstr "old"
+!  yes? go symbol_define_nbsubstring  
+!  yes? show sym ME_nbsubstring
+!
+! Calls: go symbol_count_substring
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.25 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+ppl set ME_str_le $length(ME_str)
+ppl set ME_sstr_le $length(ME_sstr)
+
+ppl set ME_nbsubstring 0
+ppl set ME_poslastsubstring 0
+
+if `(($ME_str_le) gt 1) and (($ME_str_le) ge ($ME_sstr_le))` then
+   repeat/i=1:`($ME_str_le)-($ME_sstr_le)+1` (go symbol_count_substring)
+endif
+

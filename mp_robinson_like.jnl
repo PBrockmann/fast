@@ -1,0 +1,76 @@
+\cancel mode verify	
+!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+! mp_robinson_like.jnl --  Sets up variables for a Robison I projection using
+!                  'curvilinear coordinates' code in Ferret v4.50
+!		    		
+!  Laurent Bopp 
+!     from Robinson projection based on a polynomial Savric et al. 2011
+!     http://cartography.oregonstate.edu/pdf/2011_Savric_etal_PolynomialNaturalEarth.pdf
+! 
+!     X = R ∙ λ ∙ (A0 + A2 ∙ φ2 + A4 ∙ φ4) (Eq. 2)
+!     Y = R ∙ (A1 ∙ φ + A3 ∙ φ3 + A5 ∙ φ5)
+!
+!     X and Y are projected coordinates
+!     φ and λ are the latitude and longitude
+!     R is the radius of the generating globe
+!     A0 =  0.8507
+!     A1 =  0.9642
+!     A2 = -0.1450
+!     A3 = -0.0013
+!     A4 = -0.0104 
+!     A5 = -0.0129 
+
+! Description:  Sets up variables for a Robinson map of the world
+!
+! Usage:                   arg1           arg2      arg3
+!  go mp_robinson_like central meridian  [lon2D]   [lat2D]
+!
+! arg 1 - longitude used for the center of the projection
+! arg 2 - longitude arrays (2D) for curvilinear grid (optional)
+! arg 3 - latitude arrays (2D) for curvilinear grid (optional)
+!
+! Example 1: 
+!  use coads_climatology 
+!  set grid sst
+!  go mp_robinson_like 0 
+!  set region/x=-180:180/y=-90:90
+!  shade/noaxis sst[l=1], x_page, y_page
+!  pause
+!  go mp_robinson_like 180 
+!  set region/x=0:360/y=-90:90
+!  shade/noaxis sst[l=1], x_page, y_page
+!  go mp_land 1
+!
+! !!! DOES NOT WORK WITH CURVILINEAR GRID !!!!
+! Example 2: 
+!  use "http://dods.ipsl.jussieu.fr/cgi-bin/nph-dods/brocksce/tmp/tos_Omon_IPSL-CM5A-MR_rcp45_r1i1p1_200601-210012.nc"
+!  go mp_robinson_like 0 LON LAT
+!  shade/noaxis tos[l=1], x_page, y_page
+
+let/quiet mp_central_meridian = ($01%0%)
+let/quiet mp_x = ($02%x%)
+let/quiet mp_y = ($3%y%)
+let/quiet mp_standard_parallel = 0
+
+let/quiet Pi = atan(1.)*4.
+let/quiet deg2rad = Pi / 180.0
+
+let/quiet mp_R = 1
+let/quiet mp_lambda0 = mp_central_meridian * deg2rad
+let/quiet mp_lambda = mp_x * deg2rad
+let/quiet mp_phi = mp_y * deg2rad
+
+let/quiet A0 =  0.8507
+let/quiet A1 =  0.9642
+let/quiet A2 = -0.1450
+let/quiet A3 = -0.0013
+let/quiet A4 = -0.0104
+let/quiet A5 = -0.0129
+
+let/quiet x_page = mp_R * (mp_lambda-mp_lambda0) * (A0 + A2*mp_phi^2 + A4*mp_phi^4)
+let/quiet y_page = mp_R * (A1*mp_phi + A3*mp_phi^3 + A5*mp_phi^5)
+
+let/quiet mp_mask = 1
+
+!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+set mode/last verify

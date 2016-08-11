@@ -1,0 +1,52 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Set a background color window filled by a color
+!              RRR, GGG, BBB variables must be defined. They can be
+!              set by a previous call to set_rgb_from_namecolor.jnl
+!              or set_rgb_from_values scripts
+!
+! Usage: go background_color topmargin botmargin leftmargin rightmargin viewportname
+!
+! Example:
+!          yes? go set_rgb_from_namecolor "MediumVioletRed"
+!          yes? go background_color 0 0 0 0 full_bg
+!          yes? 
+!          yes? go set_rgb_from_namecolor "indian red"
+!          yes? go background_color 20 20 20 20 viewport_bg
+!          yes? 
+!          yes? go margins_set 20 20 20 20 ; plot i[i=1:100]
+! 
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@cea.fr
+! $Date: 2009/05/14 15:03:59 $
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.4 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+!----------------------
+let pid = {SPAWN:"echo $$"}
+
+sp rm -rf background_color_current_`pid`.spk
+sp sed -e "s/RRR/`RRR`/"  -e "s/GGG/`GGG`/" -e "s/BBB/`BBB`/" $FER_FAST/background_color.spk.template > background_color_current_`pid`.spk
+
+def viewport/XLIMITS=0,1/YLIMITS=0,1 ($05)
+set viewport ($05)
+
+go margins_set ($01) ($02) ($03) ($04) 
+
+POLYGON/nolab/noaxes/fill/pal=background_color_current_`pid`.spk {0,0,1,1,0},{0,1,1,0,0}
+
+sp rm -rf background_color_current_`pid`.spk
+
+set v full
+
+!----------------------
+cancel var pid
+cancel var RRR, GGG, BBB
+
+!----------------------
+set mode/last verify

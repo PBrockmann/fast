@@ -1,0 +1,45 @@
+
+!**************************************************************
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.15 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+set memory/size=20
+
+!************************************************************
+def sym file=$1
+def sym timestep=$2
+def sym file_out=$3
+def sym var1=$4
+def sym var1name=$5%($var1)%
+
+!************************************************************
+
+def sym var2=($var1name)
+
+use "($file)"
+
+let ME_var0=(($var1))*l[l=1]
+def axis/t=($timestep):($timestep):1 taxis1
+let ($var2)=ME_var0[gt=taxis1@asn]
+set variable/title="($var1name)" ($var2)
+
+if `($timestep) eq 1` then
+   save/file="($file_out)"/clobber ($var2)
+else
+   save/file="($file_out)"/append ($var2)
+endif
+
+cancel var ($var2)
+
+go symbol_basename_and_define basefile "($file)"
+cancel data ($basefile)
+
+cancel var ME_*
+cancel symb ME_*

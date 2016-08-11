@@ -1,0 +1,2 @@
+go "script_landscape.jnl" temp[k=@max]
+exit

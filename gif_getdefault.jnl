@@ -1,0 +1,58 @@
+\cancel mode verify 
+
+!**************************************************************
+! Description: Deternime default size of the window and set
+!              2 variables width_default and height_default
+!
+! Usage: go gif_getdefaults.jnl -v
+!
+!        -v = verbose (display values of width_default and height_default)
+! 
+! Notes: 
+!        * gif_getdefault.jnl uses the command identify 
+!          from http://www.imagemagick.org/
+!        * width_default and height_default values are different 
+!          following used modes (-gif or interactive)
+!        * The following lines can be used to see the difference between
+!          the different modes
+!             $ ferret -script gif_getdefault.jnl -v
+!             --> gives for me 686.0  515.0
+!             $ ferret -gif -script gif_getdefault.jnl -v
+!             --> gives for me 824.0  617.0
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.7 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+def sym arg1=$1%none%
+
+! Create and save a gif image
+!--------------------------------------------
+set graphics/antialias
+SET WINDOW/ASPECT=0.75      ! default value
+SHADE/i=1:10/j=1:15 i+j     ! a sample plot
+FRAME/FILE=gif_getdefault.png     ! save the plot as a gif.
+
+! Get size of the produced image
+!--------------------------------------------
+let width_default_0={spawn: 'identify -format "%w\r" gif_getdefault.png'}
+let width_default=`strfloat(width_default_0[i=1])`
+let height_default_0={spawn: 'identify -format "%h\r" gif_getdefault.png'}
+let height_default=`strfloat(height_default_0[i=1])`
+
+IF ($arg1%|-v>TRUE|*>FALSE%) THEN
+	list `width_default`, `height_default`
+endif
+
+!--------------------------------------------
+spawn rm -f gif_getdefault.png
+
+!--------------------------------------------
+set mode/last verify
+

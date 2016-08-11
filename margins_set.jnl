@@ -1,0 +1,46 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Set margins of the current viewport 
+!
+! Usage: go margins_set [top margin=15] [bot margin=15] [left margin=15] [right margin=15]
+!
+! Example: 
+!  yes? go margins_set 15 0 15 15 
+!
+! Notes:
+!
+! Calls: 
+!
+! Author:
+! Contact: 
+!
+! Author: Patrick Brockmann 
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.26 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+def sym ME_tmargin = $1%15%
+def sym ME_bmargin = $2%15%
+def sym ME_lmargin = $3%15%
+def sym ME_rmargin = $4%15%
+
+def sym ME_hmargin = `($ME_lmargin)+($ME_rmargin)` 
+def sym ME_vmargin = `($ME_tmargin)+($ME_bmargin)` 
+
+!**************************************************************
+def sym ME_plot_width = `(1-($ME_hmargin)/100)*($vp_width)`
+def sym ME_plot_height = `(1-($ME_vmargin)/100)*($vp_height)`
+ppl axlen ($ME_plot_width), ($ME_plot_height)
+ppl origin `(($ME_lmargin)/100)*($vp_width)`,`(($ME_bmargin)/100)*($vp_height)` 
+
+!**************************************************************
+cancel sym ME_*
+
+!**************************************************************
+set mode/last verify

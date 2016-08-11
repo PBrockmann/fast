@@ -1,0 +1,107 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Plot continents file in orthographic projection  
+!
+! Usage: go cont_ortho_detail CENTRAL_MERIDIAN CENTRAL_PARALLEL [PLOT qualifiers] [marg=40] [circle=yes]
+!
+! Notes:
+!  * Pen numbers (/line=x qualifier) range from 1 to 18 and follow the formula:
+!          color_thickness = 6 * (thickness - 1) + color
+!  with color = 1,2,3,4,5,6 = black,red,green,blue,cyan,magenta
+!  and thickness = 1,2,3
+!
+! Calls: 
+!
+! Author: Patrick Brockmann 
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr  
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.5 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+query/ignore $1%<Usage: go cont_ortho_detail CENTRAL_MERIDIAN CENTRAL_PARALLEL [PLOT qualifiers] [marg=40] [circle=yes]%
+query/ignore $2%<Usage: go cont_ortho_detail CENTRAL_MERIDIAN CENTRAL_PARALLEL [PLOT qualifiers] [marg=40] [circle=yes]%
+
+set data/save
+
+!**************************************************************
+define symbol ME_margin = $4%40%
+
+if $3"false|*>true" then
+        define symbol ME_QUALIFIERS = /nolab/vs/line=1/noaxes/hlimits=-1:1/vlimits=-1:1$3
+else
+        define symbol ME_QUALIFIERS = /nolab/vs/line=1/noaxes/hlimits=-1:1/vlimits=-1:1
+endif
+
+
+!**************************************************************
+! ratio width/height=1
+def sym ME_ratio = 1 
+def sym ME_plot_width = `(1-($ME_margin)/100)*min(($vp_width),($ME_ratio)*($vp_height))`
+def sym ME_plot_height = `($ME_plot_width)/($ME_ratio)`
+ppl axlen ($ME_plot_width), ($ME_plot_height)
+ppl origin `(($vp_width)-($ME_plot_width))/2`,`(($vp_height)-($ME_plot_height))/2`
+
+!**************************************************************
+let ME_PI = atan(1.)*4.
+let ME_DEG2RAD = ME_PI/180.
+
+!**************************************************************
+use geo_borders_intermed.nc
+
+let ME_Longitude = CONTINENT_LON 
+let ME_Latitude = CONTINENT_LAT 
+
+let ME_CM = $1 
+let ME_CP = $2 
+
+let ME_LAMBDA0 = ME_CM*ME_DEG2RAD
+let ME_LAMBDA = ME_Longitude*ME_DEG2RAD
+let ME_PHI0 = ME_CP*ME_DEG2RAD
+let ME_PHI = ME_Latitude*ME_DEG2RAD
+
+let ME_X_PAGE = cos(ME_PHI)*sin(ME_LAMBDA-ME_LAMBDA0)*ME_MASK
+let ME_Y_PAGE = cos(ME_PHI0)*sin(ME_PHI)-sin(ME_PHI0)*cos(ME_PHI)*cos(ME_LAMBDA-ME_LAMBDA0)*ME_MASK
+let ME_Z_PAGE = sin(ME_PHI0)*sin(ME_PHI)+cos(ME_PHI0)*cos(ME_PHI)*cos(ME_LAMBDA-ME_LAMBDA0)
+
+let ME_MASK = if ME_Z_PAGE ge 0 then 1
+
+plot/set_up($ME_QUALIFIERS) ME_X_PAGE,ME_Y_PAGE
+
+ppl set ME_QUALIFIERS1 $edit(ME_QUALIFIERS,upcase)
+ppl set ME_ISOVER $locate("/OVER",ME_QUALIFIERS1)
+
+if `($ME_ISOVER) gt 0` then
+   ppl plot/line/over
+else
+   ppl plot
+endif
+
+cancel data geo_borders_intermed.nc 
+
+!**************************************************************
+define symbol ME_circle = $5%yes%
+
+if ($ME_circle%|yes>true|*>false|%) then
+	let ME_radius=1
+	let ME_theta=I[I=1:101]*((2*ME_PI)/100)
+	let ME_xcircle=ME_radius*COS(ME_theta)
+	let ME_ycircle=ME_radius*SIN(ME_theta)
+
+	plot/vs/nolab/over($ME_QUALIFIERS) ME_xcircle,ME_ycircle
+endif
+
+!**************************************************************
+set data/restore
+
+!**************************************************************
+cancel variable ME_*
+cancel symbol ME_*
+
+!**************************************************************
+set mode/last verify
+

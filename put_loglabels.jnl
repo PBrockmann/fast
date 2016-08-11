@@ -1,0 +1,42 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Draw tics and labels for a log plot
+!              Correct bug referenced with err630_plotlog.jnl
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@cea.fr
+! $Date: $
+! $Name: $
+! $Revision: $
+! History:
+! Modification:
+!
+!**************************************************************
+
+def sym hmin=($03%-90%)
+def sym hmax=($04%90%)
+
+ppl window,off
+
+repeat/range=`log(($01))`:`log(($02))`:1/name=n (\
+        if `n lt 0` then def sym loglab=10^-^`abs(n)` else def sym loglab=10^`n` ;\
+        label `($hmax)+5`,`n`,-1,0,0.1,($loglab) ;\
+)
+
+repeat/range=`log(($01))`:`log(($02))-1`:1/name=n (\
+        repeat/i=1:10:1 (\
+                let myindicelog=log(i*10^`n`) ; \
+                if `i eq 1` then ppl aline 1,`($hmin)-3`,`myindicelog`,($hmin),`myindicelog` \
+                            else ppl aline 1,`($hmin)-1.5`,`myindicelog`,($hmin),`myindicelog` ;\
+                if `i eq 1` then ppl aline 1,($hmax),`myindicelog`,`($hmax)+3`,`myindicelog` \
+                            else ppl aline 1,($hmax),`myindicelog`,`($hmax)+1.5`,`myindicelog` ;\
+                ) ;\
+)
+
+!label `($hmax)+20`,`log(($01))+(log(($02))-log(($01)))/2`,0,90,0.12,"Height (hPa)"
+
+! Return to default values
+ppl window,on
+
+set mode verify

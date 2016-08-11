@@ -1,0 +1,87 @@
+\ cancel mode verify	
+
+!**************************************************************
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.8 $
+!
+!**************************************************************
+
+
+!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+! mp_stereographic_north.jnl --  Sets up variables for a Stereographic North projection using
+!                  'curvilinear coordinates' code in Ferret v4.50
+!		    		
+! Jonathan Callahan
+! 5/97
+
+! Description:  Sets up variables for a Stereographic North map of the world
+!
+! Usage:                   arg1               arg2
+!  go mp_stereographic_north [central meridian] [standard parallel]
+!
+! arg 1 - longitude used for the center of the projection
+! arg 2 - latitude used for the center of the projection
+! arg 3 - longitude arrays (2D) for curvilinear grid
+! arg 4 - latitude arrays (2D) for curvilinear grid
+
+! Example:
+!  use coads_climatology 
+!  go mp_stereographic_north
+!  set grid sst
+!  shade sst[l=1], x_page, y_page
+!
+! Note 1: If you intend to plot an overlay which is a subregion
+!         of the original plot you will need to specify the two
+!         optional arguments as in:
+!
+!  use coads_climatology 
+!  go mp_stereographic_north
+!  set grid sst
+!  shade sst[l=1], x_page, y_page
+!  go mp_stereographic_north `mp_central_meridian` `mp_standard_parallel`
+!  set region/x=40e:110e/y=60s:20s
+!  shade/over slp[l=1], x_page, y_page
+!
+! Note 2: The x-range for the subregion to be overlayed must
+!         be: ( `mp_cent_mer` - 180 < x < `mp_cent_mer` + 180 )
+
+! This journal file comes from equations in the following book:
+!
+!    An Album of Map Projections
+!    U.S. Geological Survey
+!    Professional Paper 1453
+!
+! Equation numbers refer to the equation number in this book.
+
+if `$2%0% gt 90` then
+    query/ignore $3"<The standard parallel must be between -90 and 90"
+elif `$2%0% lt (-90)` then
+    query/ignore $3"<The standard parallel must be between -90 and 90"
+endif
+
+let/quiet ME_mp_central_meridian = $1
+let/quiet ME_mp_standard_parallel = $2
+let/quiet ME_mp_x = $3
+let/quiet ME_mp_y = $4
+
+let/quiet ME_Pi = atan(1.)*4.
+let/quiet ME_deg2rad = ME_Pi / 180.0
+
+let/quiet ME_mp_R = 1
+let/quiet ME_mp_k0 = 1
+let/quiet ME_mp_lambda0 = ME_mp_central_meridian * ME_deg2rad
+let/quiet ME_mp_lambda = ME_mp_x * ME_deg2rad
+let/quiet ME_mp_phi = ME_mp_y * ME_deg2rad
+
+let/quiet ME_mp_rho = 2 * ME_mp_R * ME_mp_k0 * tan(ME_Pi/4 - ME_mp_phi/2)  ! eqn (116)
+
+let/quiet ME_x_page = ME_mp_rho * sin(ME_mp_lambda-ME_mp_lambda0)          ! eqn (108)
+let/quiet ME_y_page = (-1.0) * ME_mp_rho * cos(ME_mp_lambda-ME_mp_lambda0) ! eqn (109)
+
+let/quiet ME_mp_mask = 1
+
+!++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++!
+set mode/last verify

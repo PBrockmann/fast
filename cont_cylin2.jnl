@@ -1,0 +1,82 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Plot continents file in cylindrical projection
+!
+! Usage: go cont_cylin2 CENTRAL_MERIDIAN [POLYGON qualifiers] [polygons file=earth_continents]
+!
+! Notes:
+!  * Pen numbers (/line=x qualifier) range from 1 to 18 and follow the formula:
+!          color_thickness = 6 * (thickness - 1) + color
+!  with color = 1,2,3,4,5,6 = black,red,green,blue,cyan,magenta
+!  and thickness = 1,2,3
+!  * polygons file = specify xxxxx to use an existing polygon file named polydouble_xxxxx.nc
+!                    default is earth_continents
+!
+! Calls: go unlabels
+!
+! Author: Patrick Brockmann 
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr  
+! $Date: 2009/05/14 15:04:00 $
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.15 $
+! History:
+!  * The classic "go land" script gives continents with some 
+!  discontinuties. Here there are 2 world maps continuous
+! Modification:
+!
+!**************************************************************
+
+query/ignore $1%<Usage: go cont_cylin2 CENTRAL_MERIDIAN [POLYGON qualifiers] [polygons file=earth_continents]%
+
+set data/save
+
+!**************************************************************
+if $2"false|*>true" then
+        define symbol ME_QUALIFIERS = /line=1/hlimits=\`ME_CM-180\`:\`ME_CM+180\`:30/vlimits=-90:90:30$2
+else
+        define symbol ME_QUALIFIERS = /line=1/hlimits=\`ME_CM-180\`:\`ME_CM+180\`:30/vlimits=-90:90:30
+endif
+
+!**************************************************************
+ppl set ME_QUALIFIERS1 $edit(ME_QUALIFIERS,upcase)
+ppl set ME_ISOVER $locate("/OVER",ME_QUALIFIERS1)
+ppl set ME_ISFILL $locate("/FILL",ME_QUALIFIERS1)
+
+!**************************************************************
+use polydouble_$3%earth_continents%.nc
+
+let ME_CM = $1
+
+set variable/title=LONGITUDE CONT_LON 
+set variable/title=LATITUDE CONT_LAT
+
+polygon/set_up($ME_QUALIFIERS) CONT_LON,CONT_LAT
+
+go unlabels 1 8
+
+ppl xfor (I7,''LONE'')		! set longitude axis labels
+ppl yfor (I7,''LAT'')		! set latitude axis labels
+
+if `($ME_ISFILL) gt 0 and ($ME_ISOVER) gt 0` then
+   ppl fillpol/line/fill/over
+elif `($ME_ISFILL) gt 0 and ($ME_ISOVER) le 0` then
+   ppl fillpol/line/fill
+elif `($ME_ISFILL) le 0 and ($ME_ISOVER) gt 0` then
+   ppl fillpol/line/over
+else
+   ppl fillpol/line
+endif
+
+cancel data polydouble_$3%earth_continents%.nc
+
+!**************************************************************
+set data/restore
+
+!**************************************************************
+cancel variable ME_* 
+cancel symbol ME_* 
+
+!**************************************************************
+set mode/last verify
+

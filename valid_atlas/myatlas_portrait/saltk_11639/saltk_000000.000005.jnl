@@ -1,0 +1,2 @@
+go "script_landscape.jnl" salt[k=5]
+exit

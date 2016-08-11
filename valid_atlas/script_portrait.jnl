@@ -1,0 +1,11 @@
+
+
+go page_new -i 1 1 
+
+set v 1
+
+use levitus_climatology
+
+shade/lev=25 $1
+
+

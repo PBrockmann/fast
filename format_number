@@ -1,0 +1,22 @@
+#!/bin/ksh
+#
+# Author: Patrick Brockmann
+# Contact: Patrick.Brockmann@cea.fr
+# $Date: 2009/05/14 15:04:00 $
+# $Name: FAST_608_1_3 $
+# $Revision: 1.1.1.4 $
+# History:
+# Modification:
+#
+# Usage: format_number gawk_format_specifier
+#
+# Examples:
+#            echo 3    | format_number %05d
+#            echo 3.14 | format_number %5.3f
+#            echo 3.14 | format_number %.3e
+
+export LC_ALL=C
+gawk -v format=$1 '{
+        a=sprintf("%s\n",format)
+        printf(a,$1)
+}'

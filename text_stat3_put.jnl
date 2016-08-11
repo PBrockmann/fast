@@ -1,0 +1,75 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Put a statistic text at a position expressed as percentage 
+!  of width and height of the viewport over a plot 
+!
+! Usage: go text_stat3_put xpos ypos var [justification=0] [character height=0.3] [angle=0]
+!
+! Example: 
+!  yes? use levitus_climatology.cdf
+!  yes? go ratio_set 2
+!  yes? shade temp[k=1]
+!  yes? go text_stat3_put 50 80 temp[k=1] 0 0.3
+!
+! Notes:
+!  * Weighted average (@ave on xsequence don't do it)
+!  * Only for 2D variable
+!  * Justification: -1 left, 0 center, +1 right 
+!  * Use @Cnnn (where nnn is the pen number) before the text
+!  to get a colored text
+!  For example "@C008This a red text and thick"
+!  * Pen numbers range from 1 to 18 and follow the formula:
+!          pen = 6 * (thickness - 1) + color
+!  with color = 1,2,3,4,5,6 = black,red,green,blue,cyan,magenta
+!  and thickness = 1,2,3
+!  * Caracter height is expressed in cm (default=0.3)
+!  * Angle at which text is to be drawn  
+!  (0 degrees is at 3 o'clock and positive rotation 
+!  is counter clockwise.)
+!
+! Calls: go text_put
+!
+! Author: Patrick Brockmann 
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.18 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+query/ignore $1%<Usage: go text_stat3_put xpos ypos var [justification=0] [character height=0.3] [angle=0]%
+query/ignore $2%<Usage: go text_stat3_put xpos ypos var [justification=0] [character height=0.3] [angle=0]%
+query/ignore $3%<Usage: go text_stat3_put xpos ypos var [justification=0] [character height=0.3] [angle=0]%
+
+def sym ME_xpos=$1
+def sym ME_ypos=$2
+def sym ME_just=$4%0%
+def sym ME_labheight=$5%0.3%
+def sym ME_angle=$6%0%
+
+let ME_var=($3)
+def sym ME_varmin=`ME_var[i=@min,j=@min],P=-3`
+def sym ME_varmax=`ME_var[i=@max,j=@max],P=-3`
+
+def sym ME_varavg=`ME_var[i=@ave,j=@ave],P=-3`
+def sym ME_varstd=`ME_var[i=@var,j=@var]^0.5,P=-3`
+
+! text (@AS to get special characters like %)
+def sym ME_textpart1=Weighted Avg: ($ME_varavg)  Std: ($ME_varstd)
+def sym ME_textpart2=Min: ($ME_varmin)  Max: ($ME_varmax)
+
+! text (@AS to get special characters like %)
+
+def sym ME_textline=($ME_textpart1) ($ME_textpart2)
+
+go text_put.jnl ($ME_xpos) ($ME_ypos) "($ME_textline)" ($ME_just) ($ME_labheight) ($ME_angle)
+
+!**************************************************************
+cancel var ME_*
+cancel sym ME_*
+
+!**************************************************************
+set mode/last verify

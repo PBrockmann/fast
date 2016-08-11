@@ -1,0 +1,51 @@
+!**************************************************************
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@cea.fr
+! $Date: $ 
+! $Name: $
+! $Revision: $
+!
+!**************************************************************
+
+!============================================
+go usegrid MED12
+
+use "/cscratch/cont003/p48duta/MED12/INPUT/MED12_1d_20070801_20070831_grid_T.nc"
+
+let var=if MASK[d=MED12_grid.nc] eq 1 then votemper[l=1]
+
+set w 1
+go set_rgb_from_namecolor "black"
+go background_color 15 15 10 10 viewport_bg
+go margins_set 15 15 10 10
+shade/pal=grads/lev=(-INF)(0,28,1)(INF) var[k=1], nav_lon, nav_lat
+
+!============================================
+sp rm -f a.txt
+repeat/range=1:6 (\
+	where ; plot/over/vs/nolab/sym=20/color=white ($XMOUSE),($YMOUSE) ; list/file="a.txt"/append/nohead/format=(2F10.3) ($XMOUSE),($YMOUSE) ;\
+)
+
+!============================================
+go interpol_between_2pts_fromfile a.txt b.txt 50
+
+!============================================
+file/var=t1,t2 b.txt
+plot/vs/over/line/color=white/nolab t1,t2
+
+!============================================
+set data 2
+
+let v1 = SAMPLEXY_CURV(var,nav_lon,nav_lat,t1[d=4],t2[d=4])
+let v2 = RESHAPE(v1, outgrid)
+
+! latitude
+def axis/Y/units="degrees_north" myaxis=t2[d=4]
+let outgrid = z[gz=var] + y[gy=myaxis]  
+
+set w 2
+go set_rgb_from_namecolor "black"
+go background_color 15 15 10 10 viewport_bg
+go margins_set 15 15 10 10
+shade/pal=grads/lev=(-INF)(0,28,1)(INF) v2
+

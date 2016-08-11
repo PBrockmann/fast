@@ -1,0 +1,46 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Plot box in the active viewport
+!
+! Usage: go viewport_box_put [box reduction=0.5] [POLYGON qualifiers] 
+!
+! Notes:
+!  * Box reduction is expressed in cm
+!  * Pen numbers (/line=x qualifier) range from 1 to 18 and follow the formula:
+!          color_thickness = 6 * (thickness - 1) + color
+!  with color = 1,2,3,4,5,6 = black,red,green,blue,cyan,magenta
+!  and thickness = 1,2,3
+!
+! Calls: go margins
+!
+! Author: Patrick Brockmann 
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.26 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+def sym ME_xbox0=`($1%0.5%/2.54)/($vp_width)`
+def sym ME_xbox1=`(($vp_width)-($1%0.5%/2.54))/($vp_width)`
+def sym ME_ybox0=`($1%0.5%/2.54)/($vp_height)`
+def sym ME_ybox1=`(($vp_height)-($1%0.5%/2.54))/($vp_height)`
+
+if $2"false|*>true" then
+   define symbol ME_QUALIFIERS = /hlim=0:1/vlim=0:1/nolab/noaxes/nokey/line=1/pal=white$2
+else
+   define symbol ME_QUALIFIERS = /hlim=0:1/vlim=0:1/nolab/noaxes/nokey/line=1/pal=white
+endif
+
+go margins 0.001,0.001,0.001,0.001
+
+POLYGON($ME_QUALIFIERS) {($ME_xbox0),($ME_xbox0),($ME_xbox1),($ME_xbox1),($ME_xbox0)},{($ME_ybox0),($ME_ybox1),($ME_ybox1),($ME_ybox0),($ME_ybox0)},{0}
+
+!**************************************************************
+cancel var ME_*
+
+!**************************************************************
+set mode/last verify

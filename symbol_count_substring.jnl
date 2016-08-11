@@ -1,0 +1,33 @@
+!**************************************************************
+! Description: Count the number of substring in a string 
+!  through the ME_nbsubstring symbol 
+!
+! Usage: called by symbol_define_nbsubstring.jnl
+!
+! Notes:
+!  
+! Calls: 
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.25 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+!**************************************************************
+
+ppl set ME_str_ex $extract(`i`,($ME_sstr_le),ME_str)
+
+ppl set ME_sstr_lo $locate(($ME_sstr),ME_str_ex)
+
+if `($ME_sstr_lo) eq 1` then 
+   ppl inc ME_nbsubstring
+   ppl set ME_poslastsubstring `i` 
+endif
+
+!**************************************************************
+

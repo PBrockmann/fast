@@ -1,0 +1,37 @@
+#------------------------------------------------------
+# FERRET
+#------------------------------------------------------
+source /where/ferret_paths/ksh/script/is/located
+
+export FER_DATA="$FER_DATA $FER_DIR/data"
+export FER_EXTERNAL_FUNCTIONS="$FER_DIR/bin"
+
+#------------------------------------------------------
+# FAST (Ferret Analysis Scripting Toolbox)
+#------------------------------------------------------
+export FER_FAST="/where/fast/package/is/located"
+
+export FER_GO="$FER_GO $FER_FAST"
+export FER_DATA="$FER_DATA $FER_FAST"
+export FER_PALETTE="$FER_PALETTE $FER_FAST"
+export FER_EXTERNAL_FUNCTIONS="$FER_EXTERNAL_FUNCTIONS $FER_FAST"
+
+export PATH="$FER_FAST:$PATH"
+
+#------------------------------------------------------
+# ATLAS
+#------------------------------------------------------
+export FER_ATLAS="/where/atlas/package/is/located"
+
+export FER_GO="$FER_GO $FER_ATLAS"
+export FER_DATA="$FER_DATA $FER_ATLAS"
+export FER_PALETTE="$FER_PALETTE $FER_ATLAS"
+export FER_EXTERNAL_FUNCTIONS="$FER_EXTERNAL_FUNCTIONS $FER_ATLAS"
+
+export PATH="$FER_ATLAS:$PATH"
+
+#------------------------------------------------------
+# DATABASE
+#------------------------------------------------------
+export DB=/where/your/database/is/located
+export FER_DATA="$FER_DATA $DB/grids $DB/extras $DB/climato"

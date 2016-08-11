@@ -1,0 +1,38 @@
+#------------------------------------------------------
+# FERRET
+#------------------------------------------------------
+source /where/ferret_paths/csh/script/is/located
+
+setenv FER_DATA "$FER_DATA $FER_DIR/data"
+setenv FER_EXTERNAL_FUNCTIONS "$FER_DIR/bin"
+
+#------------------------------------------------------
+# FAST (Ferret Analysis Scripting Toolbox)
+#------------------------------------------------------
+setenv FER_FAST /where/fast/package/is/located
+
+setenv FER_GO "$FER_GO $FER_FAST"
+setenv FER_DATA "$FER_DATA $FER_FAST"
+setenv FER_PALETTE "$FER_PALETTE $FER_FAST"
+setenv FER_EXTERNAL_FUNCTIONS "$FER_EXTERNAL_FUNCTIONS $FER_FAST"
+
+set path=($FER_FAST $path)
+
+#------------------------------------------------------
+# ATLAS
+#------------------------------------------------------
+setenv FER_ATLAS /where/atlas/package/is/located
+
+setenv FER_GO "$FER_GO $FER_ATLAS"
+setenv FER_DATA "$FER_DATA $FER_ATLAS"
+setenv FER_PALETTE "$FER_PALETTE $FER_ATLAS"
+setenv FER_EXTERNAL_FUNCTIONS "$FER_EXTERNAL_FUNCTIONS $FER_ATLAS"
+
+set path=($FER_ATLAS $path)
+
+#------------------------------------------------------
+# DATABASE
+#------------------------------------------------------
+setenv DB /where/your/database/is/located
+setenv FER_DATA "$FER_DATA $DB/grids $DB/extras $DB/climato"
+

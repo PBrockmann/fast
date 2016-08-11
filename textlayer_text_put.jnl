@@ -1,0 +1,65 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Put a text at a position expressed as percentage 
+!  of width and height of the page
+!
+! Usage: go textlayer_text_put xpos ypos "text" [justification=0] [character height=0.3] [angle=0]
+!
+! Example: 
+!  yes? go page_new 1 1
+!  yes? set v 1
+!  yes? plot i[i=1:100]
+!  yes? go textlayer_new
+!  yes? go textlayer_text_put 30 40 "text centered" 
+!
+! Notes:
+!  * Justification: -1 left, 0 center, +1 right 
+!  * Use @Cnnn (where nnn is the pen number) before the text
+!  to get a colored text
+!  For example "@C008This a red text and thick"
+!  * Pen numbers range from 1 to 18 and follow the formula:
+!          pen = 6 * (thickness - 1) + color
+!  with color = 1,2,3,4,5,6 = black,red,green,blue,cyan,magenta
+!  and thickness = 1,2,3
+!  * Add a blank before or after text to get spaces between
+!  the arrow and the text; to add blanks after the text, use
+!  the special character '_' (lowerscript)  
+!  yes? go textlayer_text_click "a text with blanks after     _"
+!  * Caracter height is expressed in cm (default=0.3)
+!  * Angle at which text is to be drawn  
+!  (0 degrees is at 3 o'clock and positive rotation 
+!  is counter clockwise.)
+!
+! Calls: 
+!
+! Author: Patrick Brockmann 
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $ 
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.26 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+query/ignore $1%<Usage: go textlayer_text_put xpos ypos "text" [justification=0] [character height=0.3] [angle=0]%
+query/ignore $2%<Usage: go textlayer_text_put xpos ypos "text" [justification=0] [character height=0.3] [angle=0]%
+query/ignore $3%<Usage: go textlayer_text_put xpos ypos "text" [justification=0] [character height=0.3] [angle=0]%
+
+!**************************************************************
+def sym ME_xpos=`$1/100`
+def sym ME_ypos=`$2/100`
+def symb ME_text=$3
+def sym ME_just=$4%0%
+def sym ME_labheight=`$5%0.3%/2.54`   ! cm to inch
+def sym ME_angle=$6%0%
+
+! text single line
+label ($ME_xpos),($ME_ypos),($ME_just),($ME_angle),($ME_labheight), "($ME_text)"
+
+!**************************************************************
+cancel sym ME_*
+
+!**************************************************************
+set mode/last verify

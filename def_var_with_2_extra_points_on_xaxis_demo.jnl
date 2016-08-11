@@ -1,0 +1,20 @@
+
+!=====================================
+use levitus_climatology.cdf
+
+!=====================================
+let var1=temp[k=1]
+
+!=====================================
+set w 1
+set v upper
+go mapiso_ortho COARDS 20 40 var1 30 fill/lev=25 earth_continents graticule_30s
+
+!=====================================
+go def_var_with_2_extra_points_on_xaxis.jnl var1 var2
+show grid var1
+show grid var2
+
+!=====================================
+set v lower
+go mapiso_ortho COARDS 20 40 var2 30 fill/lev=25 earth_continents graticule_30s

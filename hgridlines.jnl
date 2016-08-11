@@ -1,0 +1,59 @@
+\cancel mode verify
+
+!**************************************************************
+! Description: Plot over the vertical grid of a plot
+!
+! Usage: go hgridlines hdelta [PLOT qualifiers]
+!
+! Example:
+!  yes? plot/i=1:100 sin(i/5)
+!  yes? go hgridlines 20 
+!  will plot every 20 on the physical xaxis a vertical bar
+!  yes? plot/i=1:100 sin(i/5)
+!  yes? go hgridlines 20 /dash=(0.3,0.1,0.3,0.1)/color=red/thick=1
+!
+! Notes:
+!
+! Calls:
+!
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:04:00 $
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.27 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+query/ignore $1%<Usage: go hgridlines hdelta [plot qualifiers]%
+
+def sym ME_qualifiers=$2%/DASH=(0.1,0.05,0.1,0.05)%
+
+! x1 = first vertical line (superior value)
+if `($XAXIS_MIN) lt 0` then
+   def sym ME_x1 = int(($XAXIS_MIN)/$1)*$1
+else
+   def sym ME_x1 = (int(($XAXIS_MIN)/$1)+1) *$1
+endif
+! x2 = last vertical line  (inferior value)
+if `($XAXIS_MAX) lt 0` then
+   def sym ME_x2 = (int(($XAXIS_MAX)/$1)-1) *$1
+else
+   def sym ME_x2 = (int(($XAXIS_MAX)/$1)) *$1
+endif
+def sym ME_xrange = `(($ME_x2)) - (($ME_x1))`
+
+def sym ME_x = ($ME_x1) + (i-1)*$1
+def sym ME_nbx = int(($ME_xrange)/$1) + 1
+
+if `($ME_nbx) ge 1` then
+  repeat/i=1:`($ME_nbx)`:1 ( plot/nolab/over/vs($ME_qualifiers) {`($ME_x)`,`($ME_x)`},{($YAXIS_MIN),($YAXIS_MAX)} )
+endif
+
+!**************************************************************
+cancel sym ME_*
+
+!**************************************************************
+set mode/last verify
+

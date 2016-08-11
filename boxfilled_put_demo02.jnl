@@ -1,0 +1,33 @@
+!**************************************************************
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! $Date: 2009/05/14 15:03:59 $
+! $Name: FAST_608_1_3 $
+! $Revision: 1.1.1.4 $
+! History:
+! Modification:
+!
+!**************************************************************
+
+!============================================
+set window 1
+go margins_set 20 20 15 25
+
+!============================================
+use levitus_climatology
+shade/nokey temp[k=1] 
+
+!============================================
+let casenb = 15
+let casexsize = 3 
+let caseysize = 1.5 
+let casexstart = 78 
+let caseystart = 20 
+let caseydelta = 1 
+
+set mode verify
+ppl window off
+repeat/range=1:`casenb`/name=ncase ( \
+	go boxfilled_put `casexstart` `caseystart+(caseysize+caseydelta)*(ncase-1)` `casexstart+casexsize` `caseystart+(caseysize+caseydelta)*(ncase-1)+caseysize` /over/nolab/line/fill/lev `ncase` "@AS This a level `ncase,zw=2`" 0.2 ;\
+	)
+!============================================

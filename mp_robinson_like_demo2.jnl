@@ -1,0 +1,50 @@
+
+!=============================================
+! Demonstrate how to rid off blanks around the border lines
+
+!=============================================
+use mp_robinson_like_demo2.nc
+
+!=============================================
+go page_new -i 1 2 
+
+!=============================================
+set v 1
+
+set grid var1
+
+go mp_robinson_like.jnl 0
+
+set region/x=-180:180/y=-90:90
+
+! mp_robinson projection has a ratio close to 0.5
+go ratio_set 2 15
+
+shade/noaxis/hlim=-3:3/vlim=-1.5:1.5/nokey/nolab var1, x_page, y_page
+
+go mp_robinson_like_border.jnl /line/color=1/thick=1
+
+go mp_land 1
+
+!=============================================
+set v 2 
+
+! regrid var1 to get domain from -180 to 180 (keep delta)
+def axis/x=-180:180:5/units=degrees_east/modulo myxaxis
+let var2=var1[gx=myxaxis]
+
+set grid var2
+
+go mp_robinson_like.jnl 0
+
+set region/x=-180:180/y=-90:90
+
+! mp_robinson projection has a ratio close to 0.5
+go ratio_set 2 15
+
+shade/noaxis/hlim=-3:3/vlim=-1.5:1.5/nokey/nolab var2, x_page, y_page
+
+go mp_robinson_like_border.jnl /line/color=1/thick=1
+
+go mp_land 1
+

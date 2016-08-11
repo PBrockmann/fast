@@ -1,0 +1,25 @@
+!**************************************************************
+! Author: Patrick Brockmann
+! Contact: Patrick.Brockmann@cea.fr
+! $Date: $ 
+! $Name: $
+! $Revision: $
+!
+!**************************************************************
+
+go usegrid MED12
+
+use "/cscratch/cont003/p48duta/MED12/INPUT/MED12_1d_20070801_20070831_grid_T.nc"
+
+let var=if MASK[d=MED12_grid.nc] eq 1 then votemper[l=1]
+
+let v1 = SAMPLEXY_CURV(var,nav_lon,nav_lat,xpts,ypts)
+let v2 = RESHAPE(v1, outgrid)
+
+! longitude
+set w 1; shade/pal=grads/lev=(-INF)(0,28,1)(INF) var[k=1], nav_lon, nav_lat; go define_section 100 ; def axis/X/units="degrees_east" myaxis=xpts ; let outgrid = z[gz=var] + x[gx=myaxis] ; set w 2 ; shade/pal=grads/lev=(-INF)(0,28,1)(INF) v2
+
+pause
+
+! latitude
+set w 1; shade/pal=grads/lev=(-INF)(0,28,1)(INF) var[k=1], nav_lon, nav_lat; go define_section 100 ; def axis/Y/units="degrees_north" myaxis=ypts ; let outgrid = z[gz=var] + y[gy=myaxis] ; set w 2 ; shade/pal=grads/lev=(-INF)(0,28,1)(INF) v2

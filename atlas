@@ -1,0 +1,229 @@
+#!/bin/ksh 
+#
+# Author: Patrick Brockmann
+# Contact: Patrick.Brockmann@ipsl.jussieu.fr
+# $Date: 2009/05/14 15:03:59 $
+# $Name: FAST_608_1_3 $
+# $Revision: 1.1.1.23 $
+# History:
+# Modification:
+#
+
+#---------------------------------------------
+init_dir=`pwd`
+export FER_GO="$init_dir $FER_GO"
+export FER_DATA="$init_dir $FER_DATA"
+export FER_PALETTE="$init_dir $FER_PALETTE"
+export FER_EXTERNAL_FUNCTIONS="$init_dir $FER_EXTERNAL_FUNCTIONS"
+
+#---------------------------------------------
+trap '\
+echo "------------------------------------------------"; \
+echo "atlas interrupted!"; \
+echo "------------------------------------------------"; \
+exit' 2
+
+#---------------------------------------------
+quiet=0
+debug=0
+quiet_option=""
+outputdir=atlas_$$
+outputfile=atlas_$$
+outputdir_option=""
+landscape_option=""
+pdf2pdf_options=""
+
+#---------------------------------------------
+while [ $# -ne 0 ]
+do
+        case $1 in
+        -h|--help|-help)
+                echo "----------------------------------------------------------------------------"
+                echo "Usage: atlas [-h] [-q] [-l] [-p package_options] [-o output_directory]"
+                echo "         file.cfg [file.cfg ...]"
+                echo "         netcdf_file [netcdf_file ...]"
+                echo
+                echo "Description:"
+                echo "   atlas is a shell script which runs configuration file(s) on netcdf file(s)"
+                echo "   read from command-line then calls pdf2pdf and indexhtml scripts to"
+                echo "   merge result pdf files and create an html index file with links to"
+                echo "   gif and pdf files created by ferretloop calls."
+                echo "   A configuration file is a shell script where calls to ferretloop script"
+                echo "   have been set."
+                echo "   Result output is a directory (atlas_#processusnumber) with"
+                echo "   configuration files (*.cfg) used, list of input files (*.input),"
+                echo "   a tex file used with pdflatex and directories created by ferretloop calls."
+                echo
+                echo "Arguments:"
+                echo "   file.cfg: This is a script file which contains calls to ferretloop script."
+                echo "             This file must have .cfg as extension."
+                echo
+                echo "   netcdf_file: Netcdf files to process are read from command-line."
+                echo "                Use absolute pathnames or DODS URL."
+                echo
+                echo "Options:"
+                echo "   -h, --help, -help"
+                echo "       Print this manual."
+                echo
+                echo "   -q, --quiet"
+                echo "       Nothing is printed on standard output."
+                echo
+                echo "   -o, --output directory"
+                echo "       The pathname directory specified will be used as output"
+                echo "       and its basename will be used as filename."
+                echo "       Default is atlas_#processusnumber."
+                echo
+                echo "   -d, --debug"
+                echo "       Debug mode; Calls to ferretloop in configuration file"
+                echo "       will be replaced by ferretloop -d"
+                echo
+                echo "   -l, --landscape"
+                echo "       Option taken from pdf2pdf script." 
+                echo "       By default, logical pages (from pdf documents to merge) are set on a"
+                echo "       physical page in portrait orientation with a rotation of 90 degrees"
+                echo "       clockwise. If option -l specified then physical page is oriented in"
+                echo "       landscape."
+                echo
+                echo "   -p, --package options"
+                echo "       Option taken from pdf2pdf script." 
+                echo "       Default options choosen from pdfpages package are:"
+                echo "       landscape=false,angle=90,nup=1x2,frame,link,linkfit=fitv"
+                echo "       If specified then -l option is not considered."
+                echo "       Refer to the documentation of the package for further informations"
+                echo "       (acroread \$FER_FAST/pdfpages.pdf)."
+                echo
+                echo "----------------------------------------------------------------------------"
+                exit ;;
+        -q|--quiet)
+                quiet=1
+                quiet_option=--quiet
+                shift ;;
+        -o|--output)
+                outputdir=$2
+                outputfile=`basename ${outputdir}`
+                outputfile_option="--output ${outputfile}"
+                shift 2 ;;
+        -d|--debug)
+                debug=1
+                shift ;;
+        -l|--landscape)
+                landscape_option=--landscape
+                shift ;;
+        -p|--package)
+                pdf2pdf_options="--package $2"
+                shift 2 ;;
+        -*)
+                atlas -h
+                exit ;;
+        *)
+                break ;;
+        esac
+done
+
+if [ $# -lt 2 ] ; then
+        atlas -h
+        exit
+fi
+
+#---------------------------------------------
+cfg_files=""
+input_files=""
+for file in $@ ; do
+    if echo $file | grep -si "\.cfg" > /dev/null ; then
+       cfg_files="$cfg_files $file"
+    else
+       input_files="$input_files $file"
+    fi
+done
+
+if [[ -z "$cfg_files" || -z "$input_files" ]] ; then
+   atlas -h
+   exit
+fi
+
+#---------------------------------------------
+function PRINT {
+echo "$1" >> ${outputfile}.stdout
+if [ $quiet -ne 1 ] ; then
+   echo "$1"
+fi;
+}
+
+#---------------------------------------------
+date_start=`date`
+
+#---------------------------------------------
+if [ -d ${outputdir} ] ; then
+   echo "       ERROR! ${outputdir} directory already exits!"
+   exit
+#   rm -rf ${outputdir} > /dev/null 2>&1
+fi
+
+mkdir -p ${outputdir}
+
+#---------------------------------------------
+for input_file in $input_files ; do
+    echo $input_file >> ${outputdir}/${outputfile}.input
+done
+
+for cfg_file in $cfg_files ; do
+    cp $cfg_file ${outputdir}
+done
+
+#---------------------------------------------
+cd ${outputdir} 
+PRINT " "
+PRINT "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+PRINT "************************************************"
+PRINT "atlas directory output: ${outputdir}" 
+PRINT "************************************************"
+
+#---------------------------------------------
+for cfg_file in `ls *.cfg` ; do
+    if [ $debug -eq 1 ] ; then
+       sed -e "s#ferretloop#ferretloop -d#g" $cfg_file > $cfg_file.debug
+       mv $cfg_file.debug $cfg_file
+    fi
+    if [ $quiet -ne 1 ] ; then
+       . ./$cfg_file $input_files 2>&1 | tee -a ${outputfile}.stdout   
+    else
+       . ./$cfg_file $input_files >> ${outputfile}.stdout 2>&1
+    fi
+done
+
+#---------------------------------------------
+pdf_files=""
+for file in `ls -rt */*` ; do
+    if echo $file | grep -si "\.pdf" > /dev/null ; then
+       pdf_files="$pdf_files $file"
+    fi
+done
+if [ ! -z "$pdf_files" ] ; then
+   PRINT "************************************************"
+   PRINT "Merge pdf files with:"
+   PRINT "    pdf2pdf $quiet_option $outputfile_option $landscape_option $pdf2pdf_options \`ls -rt */*.pdf\`"
+   pdf2pdf $quiet_option $outputfile_option $landscape_option $pdf2pdf_options $pdf_files
+fi
+
+#---------------------------------------------
+PRINT "************************************************"
+PRINT "Create html index file with:"
+PRINT "    indexhtml $quiet_option $outputfile_option \`ls *.pdf ; ls -rt */*.{gif,pdf}\`"
+#indexhtml $quiet_option $outputfile_option `ls *.pdf ; ls -rt */*.{gif,pdf}`
+# Modifed because ls -rt give a wrong sort when using {gif,pdf}
+# so build a list from ls -rt with .gif and add .pdf extension
+list=`ls *.pdf ; ls -rt */*.gif | awk '{print $0 ; gsub(/.gif/,".pdf") ; print}'`
+indexhtml $quiet_option $outputfile_option $list
+
+#---------------------------------------------
+PRINT "************************************************"
+PRINT "ls -l ${outputdir}"
+PRINT "`ls -l`"
+PRINT "************************************************"
+PRINT "atlas started: $date_start"
+PRINT "atlas ended  : `date`"
+PRINT "************************************************"
+PRINT "atlas directory output: ${outputdir}"
+PRINT "************************************************"
+PRINT "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+

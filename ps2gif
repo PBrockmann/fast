@@ -1,0 +1,177 @@
+#!/bin/ksh
+#
+# Author: Patrick Brockmann
+# Contact: Patrick.Brockmann@ipsl.jussieu.fr
+# $Date: 2009/05/14 15:04:00 $
+# $Name: FAST_608_1_3 $
+# $Revision: 1.1.1.14 $
+# History:
+# Modification:
+#
+
+#---------------------------------------------
+geometry_tocalculate='x'
+geometry_size=800
+rotate_command='none'
+verbose=0
+option_outputname=0
+#---------------------------------------------
+# pageheight and pagewidth values of the postscript file are obtained from following command:
+# gs -q -dNOPAUSE -dBATCH -sDEVICE=pnmraw -sOutputFile=- file.ps | pnmcrop | pnmfile
+# The following values reflect the A4 ratio ie 210/296 set by 
+# the script page_new which uses the command set window/aspect=`296/210`
+pageheight=540
+pagewidth=384
+
+#---------------------------------------------
+while [ $# -ne 0 ]
+do
+        case $1 in
+        -h|--help|-help)
+                echo "----------------------------------------------------------------------------"
+                echo "Usage: ps2gif [-v] [-h] [-g {xsize}x{ysize}] [-l] [-o fileout.gif] filein.ps"
+                echo
+                echo "Description:"
+                echo "   Convert a postscript file to a gif image file."
+                echo
+                echo "   Here is a typical ferret script:"
+                echo "   	go page_new 1 1"
+                echo "   	set viewport 1"
+                echo "   	use levitus_climatology"
+                echo "   	shade temp[k=1]"
+                echo "   	exit"
+                echo "   The postscript will be generated with:"
+                echo "   	ferret -server -batch ex.ps < ex.jnl"
+                echo "   The gif image will be generated with:" 
+                echo "   	ps2gif -o ex.gif ex.ps"
+                echo
+                echo "   ps2gif is a shell script based on gs from http://www.cs.wisc.edu/~ghost,"
+                echo "   pnmfile, pnmcrop, pnmflip from http://netpbm.sourceforge.net/ and"
+                echo "   convert from http://www.imagemagick.org/."
+                echo
+                echo "   The postscript is converted with gs to a pnmraw 24 bits image." 
+                echo "   Then, the pnmraw 24 bits image is converted to a 8 bits gif image" 
+                echo "   using convert (compiled with the --enable-lzw=yes option)."
+                echo
+                echo "        ps ------> pnmraw -----------> pnmraw -----------> gif"
+                echo "            (gs)           (pnmcrop)           (convert)"  
+                echo "                           (pnmflip)"  
+                echo
+                echo "Arguments:"
+                echo "   filein.ps: Postscript file must have .ps in name."
+                echo
+                echo "Options:"
+                echo "   -h, --help, -help"
+                echo "       Print this manual."
+                echo
+                echo "   -v, --verbose"
+                echo "       Informations are printed on standard output."
+                echo
+                echo "   -g, --geometry"
+                echo "       Examples:" 
+                echo "       -g cx800 for a portrait postscript (go page_new ...)"
+                echo "                defining a height of 800 pixels and"
+                echo "                a width calculated following the A4 page size ratio."
+                echo "       -g 800xc for a landscape postscript (go page_new -l ...)"
+                echo "                defining a width of 800 pixels and" 
+                echo "                a height calculated following the A4 page size ratio."
+                echo "       Default is -g cx800"
+                echo
+                echo "   -l, --landscape"
+                echo "       Same as -g 800xc"
+                echo
+	        echo "   -o, --output fileout.gif"
+                echo "       The name of the output gif file"
+                echo "       Default name is built by replacing .ps extension by .gif"
+                echo "       from the input ps file"
+                echo
+		echo "----------------------------------------------------------------------------"
+                exit ;;
+        -g|--geometry)
+                geometry_xsize=`echo $2 | cut -dx -f1`
+                geometry_ysize=`echo $2 | cut -dx -f2`
+		if [ $geometry_xsize = 'c' ] ; then
+			geometry_tocalculate='x'
+			geometry_size=$geometry_ysize
+			rotate_command='none'
+		elif [ $geometry_ysize = 'c' ] ; then
+			geometry_tocalculate='y'
+			geometry_size=$geometry_xsize
+			rotate_command='pnmflip -r270'
+		fi
+                shift 2 ;;
+        -l|--landscape)
+		geometry_tocalculate='y'
+		geometry_size=800
+		rotate_command='pnmflip -r270'
+                shift ;;
+        -o|--output)
+		option_outputname=1
+                fileout=$2
+                shift 2 ;;
+        -v|--verbose)
+                verbose=1
+                shift ;;
+        -*)
+                ps2gif -h
+                exit ;;
+        *)
+                break ;;
+
+        esac
+done
+
+if [ $# -ne 1 ] ; then
+        $FER_FAST/ps2gif -h
+        exit
+fi
+
+if [ $option_outputname -eq 0 ] ; then
+	fileout=`basename $1 .ps`.gif
+fi
+
+#---------------------------------------------
+function PRINT {
+if [ $verbose -eq 1 ] ; then
+   echo "$1" 
+fi;
+}
+
+#---------------------------------------------
+filein=$1
+
+PRINT "*********************************"
+PRINT "ps2gif informations"
+
+case $geometry_tocalculate in
+    'x')
+	PRINT "y geometry set; x geometry calculated"
+        ysize=${geometry_size}
+        xsize=`echo "${ysize} ${pagewidth} ${pageheight}" | awk '{printf("%.0f\n", $1*$2/$3)}'`
+	xresol=`echo "${xsize} ${pagewidth}" | awk '{printf("%.3f\n", 72*$1/$2)}'`
+	yresol=`echo "${ysize} ${pageheight}" | awk '{printf("%.3f\n", 72*$1/$2)}'`
+
+	PRINT "xsize=${xsize} ysize=${ysize}"
+	PRINT "xresol=${xresol} yresol=${yresol}" ;;
+
+    'y')
+	PRINT "x geometry set; y geometry calculated"
+        xsize=${geometry_size}
+        ysize=`echo "${xsize} ${pagewidth} ${pageheight}" | awk '{printf("%.0f\n", $1*$2/$3)}'`
+	xresol=`echo "${xsize} ${pageheight}" | awk '{printf("%.3f\n", 72*$1/$2)}'`
+	yresol=`echo "${ysize} ${pagewidth}" | awk '{printf("%.3f\n", 72*$1/$2)}'`
+
+	PRINT "xsize=${xsize} ysize=${ysize}"
+	PRINT "xresol=${xresol} yresol=${yresol}" ;;
+
+esac
+
+if [ "$rotate_command" != 'none' ] ; then 
+	PRINT "gs -q -dNOPAUSE -dBATCH -sDEVICE=pnmraw -r${xresol}x${yresol} -sOutputFile=- $filein | pnmcrop | $rotate_command | convert - $fileout"
+	(gs -q -dNOPAUSE -dBATCH -sDEVICE=pnmraw -r${xresol}x${yresol} -sOutputFile=- $filein | pnmcrop | $rotate_command | convert - $fileout) > /dev/null 2>&1
+else
+	PRINT "gs -q -dNOPAUSE -dBATCH -sDEVICE=pnmraw -r${xresol}x${yresol} -sOutputFile=- $filein | pnmcrop | convert - $fileout"
+	(gs -q -dNOPAUSE -dBATCH -sDEVICE=pnmraw -r${xresol}x${yresol} -sOutputFile=- $filein | pnmcrop | convert - $fileout) > /dev/null 2>&1
+fi
+
+PRINT "*********************************"

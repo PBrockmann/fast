@@ -1,0 +1,8 @@
+
+def sym varshape=`($01),return=shape`
+if `"($varshape)" eq "XYZ"` then
+	say "($01) exist"
+elif
+	say "($01) does not exist"
+fi
+
