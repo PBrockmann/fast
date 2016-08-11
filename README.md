@@ -1,6 +1,6 @@
 FAST as Ferret Analysis Scripting Toolbox
 
-[morphing between IPSL Earth System Model componants](ferret_morphing/present_02.gif)
+![morphing between IPSL Earth System Model componants](ferret_morphing/present_02.gif)
 
 FAST is a library to facilitate post-processing and visualization with Ferret.
 
