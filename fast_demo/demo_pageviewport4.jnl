@@ -1,0 +1,25 @@
+go window_init
+go page_size 640
+
+set mode metafile demo_pageviewport4.plt
+
+go page_new 1 1
+
+!----------------------
+define view/xlim=0.12296,0.48902/ylim=0.58959,0.79824 User1
+set v User1
+go viewport_show
+label 0.5,0.5,0,0,.2 User1 
+
+define view/xlim=0.20608,0.56574/ylim=0.1598,0.45804 User2
+set v User2
+go viewport_show
+label 0.5,0.5,0,0,.2 User2 
+
+!----------------------
+go textlayer_new
+go textlayer_textarrow_put 59.77 53.06 49.54 68.94 "Interactive definition of viewports" -1 0.3 " " " "
+go textlayer_arrow_put 60.57 50.11 57.21 37.75 " " " "
+
+!----------------------
+cancel mode metafile

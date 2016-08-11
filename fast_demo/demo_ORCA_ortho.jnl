@@ -1,0 +1,31 @@
+
+go window_init
+go page_size 640
+
+go page_new -i 1 1
+
+set mode metafile demo_ORCA_ortho.plt
+
+!----------------------
+use "http://dods.idris.fr/cgi-bin/nph-nc/rpsl003/SORTIES_CPL_IPSL/first/Cpl/LO1_00010201_00010230_cpl_oce_sst.nc"
+let mask2=if mask[k=1] eq 1 then 1
+
+!----------------------
+set v 1
+go map_ortho ORCA4.0 -40 60 0*SOSSTSSW[l=1]*mask2[d=ORCA4.0_grid.nc] 0 /line=4/pat=lite_up_right_to_left/pal=blue/nolab/nokey ORCA4.0_continents 
+pattern solid
+palette default
+!go map_ortho IPSL.ORCA -40 60 mask2[d=IPSL.ORCA_grid.nc] 0 /line=2/lev=(10000)/nokey/nolab/over
+
+!----------------------
+go textlayer_new
+go textlayer_text_put 50 95 "ORCA4.0 90x74x30\\nORCA 190x147x30 overlaid" 0 0.5
+go textlayer_text_put 50 10 "@ASSOSSTSSW[i=2:91,j=2:75,l=1]*mask2[d=ORCA4.0_grid.nc]" 0
+go textlayer_textarrow_put 50 4.537 40.44 8.231 "Limitation de la variable: 90x74x30"
+
+!----------------------
+go logo_put ipsl logol
+go logo_put orca
+
+!----------------------
+cancel mode metafile

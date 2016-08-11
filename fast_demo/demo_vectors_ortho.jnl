@@ -1,0 +1,27 @@
+
+go window_init
+go page_size -l 640
+
+use monthly_navy_winds.cdf
+
+go page_new  -li 1 1
+
+set mode metafile demo_vectors_ortho.plt
+
+!----------------------
+set v 1
+
+let LON_WND = x[g=UWND]*y[g=UWND]*0+x[g=UWND]
+let LAT_WND = x[g=UWND]*y[g=UWND]*0+y[g=UWND]
+go vect_ortho_2 0 40 LON_WND LAT_WND UWND[l=1] VWND[l=1] 10 " " 10
+
+!----------------------
+go textlayer_new
+go textlayer_text_put 50 20 "Vector plots\\nin orthographic projection"
+
+!----------------------
+go logo_put ipsl
+
+!----------------------
+cancel mode metafile
+ 

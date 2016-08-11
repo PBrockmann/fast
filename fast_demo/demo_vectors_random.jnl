@@ -1,0 +1,27 @@
+
+go window_init
+go page_size -l 640
+
+go page_new -il 1 1
+
+set mode metafile demo_vectors_random.plt
+
+!----------------------
+use monthly_navy_winds.cdf
+
+!----------------------
+let LON_WND = x[g=UWND]*y[g=UWND]*0+x[g=UWND]
+let LAT_WND = x[g=UWND]*y[g=UWND]*0+y[g=UWND]
+
+let a=randu(i[i=1:144]*j[j=1:73])*180-90
+
+!----------------------
+set v 1
+go vect_cylin LON_WND a UWND[l=1] VWND[l=1] 10 fill
+
+!----------------------
+go textlayer_new 
+go textlayer_text_put 48.24 13.46 "Vectors plot with unstructured grid"
+
+!----------------------
+cancel mode metafile

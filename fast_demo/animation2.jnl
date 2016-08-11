@@ -1,0 +1,39 @@
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! to use with ferret command
+! ferret -gif -server < animation2.jnl
+! clean
+
+set memory/size=20 
+
+! define a window according to your display
+! from go window_init
+!def sym init_xpixel = 640
+!def sym init_ypixel = 552
+def sym init_xpixel = 768 
+def sym init_ypixel = 662 
+
+use "$DB/phase2/IPSL/CFC/IPSL_CFC_1990.nc"
+
+go page_size -l 640 
+
+go page_new -li 1 1 
+set v 1
+
+! plot first time step
+go map_ortho_2 IPSL 0 40  CFC11[k=1,l=1]*1E+9 20 /title="CFC11"/lev=(1,9,0.25)
+go text_put 50 80 "Time: " 1 
+go text_put 55 80 "1" 1  
+! capture
+frame/file=tmp_1001.gif/format=gif
+
+! perform the following step
+repeat/l=2:12 (go viewport_clean; go map_ortho_2 IPSL 0 40 CFC11[k=1,l=`l`]*1E+9 20 /title="CFC11"/lev=(1,9,0.25); go text_put 50 80 "Time: " 1; go text_put 55 80 "`l`" 1; frame/file=tmp_`1000+l`.gif/format=gif)
+ 
+! create an animate gif file
+sp convert -loop 0 tmp_*.gif animation2.gif
+say animation2.gif created
+ 
+! clean
+sp rm -f tmp_*.gif
+
+exit

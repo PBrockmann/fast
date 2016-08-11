@@ -1,0 +1,35 @@
+
+go window_init
+go page_size 640
+
+
+go page_new -i 1 2 0 100 0 90 0 10
+
+set mode metafile demo_ortho2.plt
+
+!----------------------
+use "($DB)/phase2/IPSL/CFC/IPSL_SurfTS_1940.nc"
+
+!----------------------
+set v 1
+go map_ortho IPSL 0 90 SST[k=1,l=1] 10 /nolab/nokey/lev=25/pal=ocean_temp.spk
+
+!----------------------
+set v 2
+go map_ortho_2 IPSL 0 40 SST[k=1,l=1] 0 /nolab/nokey/lev=25/pal=ocean_temp.spk
+go text_put 50 95 "SST [degrees C]" 0
+
+!----------------------
+set v 3 
+go colorbar_put -h 10 90 10 50
+
+!----------------------
+go textlayer_new
+go textlayer_textarrow_put 30.63 91.49 34.43 86.23 "Simple orthographic projection" 0 0.3
+go textlayer_textarrow_put 43.44 10.79 55.06 16.9 "Double orthographic projection" 0 0.3
+
+!----------------------
+go logo_put ipsl
+
+!----------------------
+cancel mode metafile

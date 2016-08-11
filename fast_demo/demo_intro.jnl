@@ -1,0 +1,43 @@
+go window_init
+go page_size 640
+
+set mode metafile demo_intro.plt
+
+go page_new -i 1 2 
+
+!----------------------
+let mask2=if mask eq 1 then 1
+
+!----------------------
+set v 1
+
+ppl color 2,0,60,100
+go map_ortho ORCA2.0 -40 60 mask2[d=ORCA2.0_grid.nc,k=1] 10 /line=2/lev=(10000)/nokey/nolab
+ppl color 3,100,0,0
+go map_ortho LMDZ3.3 -40 60 mask2[i=20:40,j=30:40,d=LMDZ3.3_grid.nc,k=1] 10 /line=9/lev=(10000)/nokey/nolab/over " " "i=20:40,j=30:40"
+
+!----------------------
+go textlayer_new
+
+go textlayer_text_put 63 52 "ORCA2 LMDZ3(part) - IPSL coupled models" -1 0.15
+
+go textlayer_text_put 50 45 "@DRFAST: Ferret Analysis Scripting Toolbox" 0 0.5 " "
+
+
+go textlayer_text_put 20 40 "@DRA package of Ferret scripts to make your work simpler" -1 0.3 " "
+
+go textlayer_text_put 20 32 "@ASUsing this package,\\nyou will easilly control and produce:" -1 0.3 " "
+go textlayer_text_put 20 28 "@ASpages, viewports, texts, multiline texts,\\nannotations, legends, colorbars, logos, ratios,\\nzooms, polygon maps, vectors maps with projections and\\nall needed to analyze structured and unstructured model output" -1 0.3 " "
+
+
+go textlayer_text_put 20 14 "Patrick Brockmann (IPSL)" -1 0.3 " "
+go textlayer_text_put 20 12 "@ASmailto:Patrick.Brockmann@ipsl.jussieu.fr" -1 0.3 " "
+
+go textlayer_text_put 80 5 "July 2001" -1 0.3 " "
+
+!----------------------
+go logo_put ipsl 
+
+!----------------------
+cancel mode metafile
+

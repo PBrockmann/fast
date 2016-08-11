@@ -1,0 +1,32 @@
+go window_init
+go page_size 640
+
+go page_new -i 1 2 0 100 0 90
+
+set mode metafile demo_zoom_ratio.plt
+
+!----------------------
+use "$DB/phase2/IPSL/CFC/IPSL_CFC_1990.nc"
+
+!----------------------
+set v 1
+go map_cylin IPSL 0 CFC11[k=1,l=1] 30 
+go zoom 2
+
+!----------------------
+set v 2 
+go map_cylin IPSL 0 CFC11[k=1,l=1] 30 /($zoom)/line
+go cont_cylin 0 /over/nolab/fill/pal=black
+!go cont_cylin 0 /over/nolab/fill/pal=black/pattern=angled_grid
+
+!----------------------
+go textlayer_new
+go textlayer_textarrow_put 79.73 44.06 68.28 52.97 "Global map" " " " " " " " "
+go textlayer_textarrow_put 30.83 40.31 35.23 36.87 "Mouse choosen zoomed map with respect of ratio" " " " " " " " "
+
+!----------------------
+go logo_put ipsl 
+
+!----------------------
+cancel mode metafile
+

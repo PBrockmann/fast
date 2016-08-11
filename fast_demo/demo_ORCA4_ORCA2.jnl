@@ -1,0 +1,29 @@
+
+go window_init
+go page_size 640
+
+go page_new -i 2 1 0 100 0 90
+
+set mode metafile demo_ORCA4_ORCA2.plt
+
+!----------------------
+let mask2=if mask eq 1 then 1
+
+!----------------------
+set v 1
+go map_ortho ORCA4.0 -40 60 MASK2[d=ORCA4.0_grid.nc,k=1] 0 /nokey/nolab/line/pal=orange
+
+!----------------------
+set v 2
+go map_ortho ORCA2.0 -40 60 MASK2[d=ORCA2.0_grid.nc,k=1] 0 /nokey/nolab/line/pal=yellow
+
+!----------------------
+go textlayer_new
+go textlayer_text_put 25 68 "ORCA 4" 0 0.5 " "
+go textlayer_text_put 75 68 "ORCA 2" 0 0.5 " "
+
+go logo_put ipsl logol
+go logo_put orca logor
+
+!----------------------
+cancel mode metafile

@@ -1,0 +1,44 @@
+
+go window_init
+go page_size 640
+
+go page_new -i 1 2 0 100 0 90 0 10
+
+set mode metafile demo_LMDZ_regrid.plt
+
+!----------------------
+use "http://dods.idris.fr/cgi-bin/nph-nc/rpsl003/SORTIES_CPL_IPSL/first/Atm/LO1_00010130_histmth.nc"
+
+!----------------------
+set v 1
+
+go map_cylin LMDZ 0 temp[k=1,l=1] 20 /lev=25/nokey/line/
+
+!----------------------
+set v 2 
+
+! to check
+def axis/units=degrees_east/x=180:535:5/modulo LMDZ_XAXIS
+def axis/units=degrees_north/y=-90:90:4 LMDZ_YAXIS   ! to check
+
+let RE_TEMP=TEMP[gx=LMDZ_XAXIS@ASN,gy=LMDZ_YAXIS@ASN]
+
+go ratio_set 2 20
+fill/set_up/lev=25/nokey/nolab RE_TEMP[k=1,l=1]
+ppl fill
+
+go cont_cylin 0 /over/noaxes/nolab 20
+
+!----------------------
+set v 3
+
+go invisible
+shade/nolab/noaxes/nokey/lev=25 RE_TEMP[k=1,l=1]
+
+go colorbar_put -h 10 90 10 60 0.3 
+
+!----------------------
+go logo_put ipsl
+
+!----------------------
+cancel mode metafile

@@ -1,0 +1,31 @@
+#!/bin/csh 
+
+set years=( \
+        0001 0002 0003 0004 0005\
+        )
+
+set months=(01 02 03 04 05 06 07 08 09 10 11 12)
+
+foreach year ($years)
+foreach month ($months)
+
+##############################################
+ferret -gif -server << EOS
+
+go orca4_sst ${year} ${month}
+frame/file=tmp_${year}${month}.gif/format=gif
+exit
+
+EOS
+##############################################
+
+end
+end
+
+# create an animate gif file
+convert -loop 0 tmp_*.gif outfile.gif
+
+# clean
+rm -f ferret.jnl* >& /dev/null
+
+time

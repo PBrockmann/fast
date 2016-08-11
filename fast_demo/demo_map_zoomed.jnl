@@ -1,0 +1,28 @@
+go window_init
+go page_size 640
+
+go page_new -i 1 2 0 100 0 90
+
+set mode metafile demo_map_zoomed.plt
+
+!----------------------
+go logo_put lsce
+
+!----------------------
+use "($DB)/phase2/IPSL/CFC/IPSL_SurfTS_1940.nc"
+
+!----------------------
+set v 1
+go map_cylin IPSL 0 SST[k=1,l=1] " "  /nolab/lev=25
+
+set v 2
+go map_cylin IPSL 0 SST[k=1,l=1] 20  /nolab/lev=25/hlim=-60:20/vlim=20:60/line/nokey
+
+!----------------------
+go textlayer_new
+go textlayer_textarrow_put 71.12 46.83 54.5 52.5 "Global map" " " " " " " " "
+
+go textlayer_textarrow_put 57.8 40.83 40.43 38.09 "Zoomed map with boundaries of model cells" 1
+
+!----------------------
+cancel mode metafile

@@ -1,0 +1,40 @@
+
+go window_init
+go page_size 640
+
+go page_new 1 3 0 100 0 90
+
+set mode metafile demo_ratio.plt
+
+!----------------------
+uselev
+
+!----------------------
+set v 1
+go nolab shade temp[k=1] /lev=25
+
+!----------------------
+set v 2
+go ratio_set 2
+go nolab shade temp[k=1] /lev=25
+
+!----------------------
+set v 3
+go ratio_set 1 50
+go nolab shade temp[k=1] /lev=25
+
+!----------------------
+set v title
+go viewport_box_put 1 /pal=black
+go viewport_box_put 1.2 /pal=white/over
+go text_put 50 45 "Control of plot ratio" 0 1
+
+!----------------------
+go textlayer_new
+go textlayer_textarrow_put 8.138 61.72 25.76 67.35 "Default ratio"  
+go textlayer_textarrow_put 12.76 25.15 21.58 32.18 "Ratio set to 2" 
+go textlayer_textarrow_put 80.4 22.34 67.4 17.49 "Ratio set to 1" 
+
+!----------------------
+cancel mode metafile
+

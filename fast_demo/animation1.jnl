@@ -1,0 +1,38 @@
+! Contact: Patrick.Brockmann@ipsl.jussieu.fr
+! to use with ferret command
+! ferret -gif -server < animation1.jnl
+! clean
+
+use coads_climatology
+ 
+! define a window according to your display
+! from go window_init
+!def sym init_xpixel = 640
+!def sym init_ypixel = 552
+def sym init_xpixel = 768 
+def sym init_ypixel = 662 
+
+go page_size -l 400 
+
+go page_new -li 1 1
+
+!go color_set black
+
+set v 1
+ 
+! plot first time step
+fill/l=1/lev=(-10,40,2) sst[l=1]; go land
+! capture
+frame/file=tmp_1001.gif/format=gif
+
+! perform the following step
+repeat/l=2:12 (fill/lev sst[l=`l`]; go land; frame/file=tmp_`1000+l`.gif/format=gif)
+ 
+! create an animate gif file
+sp convert -loop 0 tmp_*.gif animation1.gif
+say animation1.gif created
+ 
+! clean
+sp rm -f tmp_*.gif
+
+exit

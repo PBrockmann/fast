@@ -1,0 +1,40 @@
+
+go window_init
+go page_size 640
+
+go page_new -i 1 2
+
+set mode metafile demo_textlegend.plt
+
+!----------------------
+set v 1
+
+plot/nolab sin(i[i=1:100]/6)
+go text_legend_put 70 75 70 " legend"
+plot/over/nolab cos(i[i=1:100]/6)
+go text_legend_put 70 75 60 "@C002 legend" 2
+
+!----------------------
+set v 2
+let a=randu(i[i=1:100])*100-50
+plot/nolab/vlim=-100:100 a
+plot/over/nolab a[i=@sbx:10]
+plot/over/nolab a[i=@sbx:5]
+plot/over/nolab a[i=@sbx:3]
+
+go text_legend_put 10 20 13 " text1" 1
+go text_legend_put 10 20 10 " text2" 2
+go text_legend_put 10 20  7 " @C004text3" 4
+go text_legend_put 10 20  4 " text4" 3
+
+!----------------------
+go textlayer_new
+go textlayer_text_put 26 51 "Place your legend text\\neasily with positions\\nexpressed as viewport percentages"
+go textlayer_arrow_put 19.21 44.6 13.2 8.657 " " " "
+go textlayer_arrow_put 23.62 53.69 67.48 81.11 " " " "
+
+!----------------------
+go logo_put ipsl
+
+!----------------------
+cancel mode metafile 

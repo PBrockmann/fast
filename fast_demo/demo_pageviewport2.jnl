@@ -1,0 +1,18 @@
+go window_init
+go page_size 640
+
+set mode metafile demo_pageviewport2.plt
+
+go page_new 5 4 10 70 10 80
+
+!----------------------
+go textlayer_new
+
+go textlayer_arrow_put 79 35 10.6 79.12 
+
+go textlayer_arrow_put 79 35 70.68 10.36
+
+go textlayer_text_put 80 37 "Limitation\\nof area\\nused by viewports" -1
+
+!----------------------
+cancel mode metafile

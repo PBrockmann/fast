@@ -1,0 +1,37 @@
+go window_init
+go page_size 640
+
+set mode metafile demo_logo.plt
+
+go page_new 2 3 0 100 0 90
+
+!----------------------
+go logo_put ipsl
+go logo_put ocmip logol 
+
+!----------------------
+go textlayer_new
+go textlayer_textarrow_put 27.22 64.4 11.4 89.5 "Put your logo on the left"
+go textlayer_textarrow_put 53 60 85.1 89.35 "on the right"
+go textlayer_textarrow_put 76 48 80.83 38.75 "or where ever you want"
+
+go textlayer_arrow_put 76 48 63.43 22.34 " " " "
+go textlayer_arrow_put 76 48 62.11 43.75 " " " "
+go textlayer_arrow_put 76 48 47.57 30.62 " " " "
+go textlayer_arrow_put 76 48 31.05 13.12 " " " "
+
+define view/xlim=0.55942,0.71142/ylim=0.11556,0.22495 logo1
+define view/xlim=0.27965,0.45148/ylim=0.25,0.36 logo2
+define view/xlim=0.7731,0.91189/ylim=0.27496,0.38904 logo3
+define view/xlim=0.04,0.6/ylim=0.37342,0.4453 logo4
+define view/xlim=0.15,0.35/ylim=0.065,0.18 logo5
+ 
+!----------------------
+go logo_put lsce logo1
+go logo_put cnrs logo2
+go logo_put noaa logo3
+go logo_put pmel logo4
+go logo_put orca logo5
+
+!----------------------
+cancel mode metafile

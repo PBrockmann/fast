@@ -1,0 +1,30 @@
+
+go window_init
+go page_size -l 640
+
+go page_new  -li 1 1
+
+set mode metafile demo_vectors_cylin.plt
+
+!----------------------
+set v 1
+
+let XPOS = {50,130,240,300,140,90,200,210,110,70}
+let YPOS = {10,-50,40,20,-10,0,40,70,-35,50}
+let U = {10,3,-12,8,15,6,-8,9,17,-8}
+let V = {-3,5,7,2,-3,10,-15,11,9,-12}
+go vect_cylin XPOS YPOS U V " " fill
+
+go world_arrow_put 20 -130 30 -130 fill " " percent
+go world_text_put 20 -140 "@AS10 m/s" -1
+
+!----------------------
+go textlayer_new
+go textlayer_textarrow_put 45 8 28 14 "Vector key"
+
+!----------------------
+go logo_put ipsl
+
+!----------------------
+cancel mode metafile
+ 

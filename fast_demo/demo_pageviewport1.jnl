@@ -1,0 +1,20 @@
+
+go window_init
+go page_size 640
+
+set mode metafile demo_pageviewport1.plt
+
+go page_new 2 3
+
+!----------------------
+go textlayer_new
+
+go textlayer_textarrow_put 55 85 43.04 89.64 "Title viewport" 
+
+go textlayer_textarrow_put 25.22 40 49.45 50 "Viewport defined" 
+
+go textlayer_textarrow_put 75 60 15.21 89.5 "Logo viewports left and right"
+go textlayer_arrow_put 75 60 88.31 89.64
+
+!----------------------
+cancel mode metafile

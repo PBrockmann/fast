@@ -1,0 +1,31 @@
+def sym init_xpixel = 768
+def sym init_ypixel = 662
+
+go page_size -l 800
+
+go db_set
+
+def sym year=$1
+def sym month=$2
+
+use "http://dods.idris.fr/cgi-bin/nph-nc/rpsl003/SORTIES_CPL_IPSL/first/Cpl/LO1_($year)($month)01_($year)($month)30_cpl_oce_sst.nc"
+
+LET sosstsst = sosstssw / ( 1.0 - soicecov) - 273.15
+let mask2=if mask[k=1] eq 1 then 1
+
+!**********************
+set w 1
+go page_new -li 1 1
+
+set v 1
+!go map_ortho_2 ORCA4.0 0 40 sosstsst[i=2:91,j=2:75,l=1]*mask2[d=ORCA4.0_grid.nc] 20 /lev=(-15)(-10,30,2)(35)/title="SST"
+go map_cylin ORCA4.0 0 sosstsst[i=2:91,j=2:75,l=1]*mask2[d=ORCA4.0_grid.nc] 20 /lev=(-15)(-10,30,2)(35)/title="SST"
+
+!**********************
+!go logo_put ipsl logol
+!go logo_put orca
+
+!**********************
+go textlayer_new
+go textlayer_text_put 50 95 "ORCA4.0 coupled output\\nYear: ($year)\\nMonth: ($month)" 0 0.5
+

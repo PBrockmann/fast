@@ -1,0 +1,18 @@
+go window_init
+go page_size 640
+
+set mode metafile demo_pageviewport3.plt
+
+go page_new 2 3 10 70 10 80 0 10
+
+!----------------------
+go textlayer_new
+
+go textlayer_textarrow_put 58.87 84.67 45.05 80.4 "@AS2 columns" 
+go textlayer_textarrow_put 80.9 61.37 71.28 53.55 "@AS3 lines"
+
+go textlayer_arrow_put 78.49 21.73 70.68 14.06
+go textlayer_text_put 70.68 27 "@AS10% of used area\\nreserved for special\\n plots: colorbars, legends" -1
+
+!----------------------
+cancel mode metafile

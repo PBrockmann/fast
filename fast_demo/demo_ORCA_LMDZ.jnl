@@ -1,0 +1,30 @@
+
+go window_init
+go page_size 640
+
+go page_new -i 1 1
+
+set mode metafile demo_ORCA_LMDZ.plt
+
+!----------------------
+let mask2=if mask[k=1] eq 1 then 1
+
+!----------------------
+set v 1
+go map_ortho ORCA4.0 -50 60 mask2[d=ORCA4.0_grid.nc] 0 /line=4/pat=lite_up_right_to_left/pal=blue/nolab/nokey/lev=(1000) nocont
+go map_ortho ORCA4.0 -50 60 mask2[d=ORCA4.0_grid.nc] 0 /line=4/pat=lite_up_right_to_left/pal=blue/nolab/nokey nocont
+pattern solid
+palette default
+go map_ortho LMDZ3.3 -50 60 MASK[k=1,d=LMDZ3.3_grid.nc] 0 /line=2/lev=(1000)/over
+
+!----------------------
+go textlayer_new
+go textlayer_text_put 50 10 "LMDZ3.3 ORCA4.0 Overlaid grids" 0 0.5
+
+!----------------------
+go logo_put ipsl title
+go logo_put orca logol 
+go logo_put lmd logor 
+
+!----------------------
+cancel mode metafile

@@ -1,0 +1,53 @@
+
+go window_init
+go page_size 640
+
+set mode metafile demo_ortho_grids.plt
+
+go page_new -i 2 3 0 100 0 90
+
+!----------------------
+go logo_put ocmip
+
+!----------------------
+set v 1
+def sym MODEL=MPIM
+let a = if mask[k=1,d=($MODEL)_grid.nc] eq 1 then 1
+go map_ortho ($MODEL) 0 40 a 10 /lev=(10000)/line/nokey/nolab
+
+!----------------------
+set v 2
+def sym MODEL=AWI
+let a = if mask[k=1,d=($MODEL)_grid.nc] eq 1 then 1
+go map_ortho ($MODEL) 0 40 a 10 /lev=(10000)/line/nokey/nolab
+
+!----------------------
+set v 3
+def sym MODEL=IPSL
+let a = if mask[k=1,d=($MODEL)_grid.nc] eq 1 then 1
+go map_ortho ($MODEL) 0 40 a 10 /lev=(10000)/line/nokey/nolab
+
+!----------------------
+set v 4
+def sym MODEL=SOC
+let a = if mask[k=1,d=($MODEL)_grid.nc] eq 1 then 1
+go map_ortho ($MODEL) 0 40 a 10 /lev=(10000)/line/nokey/nolab
+
+!----------------------
+set v 5
+def sym MODEL=UL
+let a = if mask[k=1,d=($MODEL)_grid.nc] eq 1 then 1
+go map_ortho ($MODEL) 0 40 a 10 /lev=(10000)/line/nokey/nolab
+
+!----------------------
+set v 6
+def sym MODEL=PRINCE
+let a = if mask[k=1,d=($MODEL)_grid.nc] eq 1 then 1
+go map_ortho ($MODEL) 0 40 a 10 /lev=(10000)/line/nokey/nolab
+
+!----------------------
+go textlayer_new
+go textlayer_text_put 49.22 32 "Visualization of\\nstructured or unstructured grids\\nwith polygons" 
+
+!----------------------
+cancel mode metafile

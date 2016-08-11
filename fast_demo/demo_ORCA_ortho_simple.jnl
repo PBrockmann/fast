@@ -1,0 +1,26 @@
+
+go window_init
+go page_size 640
+
+go page_new -i 1 1
+
+set mode metafile demo_ORCA_ortho.plt
+
+!----------------------
+use "http://dods.idris.fr/cgi-bin/nph-nc/rpsl003/SORTIES_CPL_IPSL/first/Cpl/LO1_00010201_00010230_cpl_oce_sst.nc"
+let mask2=if mask[k=1] eq 1 then 1
+
+!----------------------
+set v 1
+go map_ortho ORCA4.0 -40 60 SOSSTSSW[l=1]*mask2[d=ORCA4.0_grid.nc] 20 /lev=25  ORCA4.0_continents 
+
+!----------------------
+go textlayer_new
+go textlayer_text_put 50 95 "ORCA4.0 90x74x30" 0 0.5
+
+!----------------------
+go logo_put ipsl logol
+go logo_put orca
+
+!----------------------
+cancel mode metafile

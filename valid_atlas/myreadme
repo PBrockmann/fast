@@ -1,3 +1,0 @@
-
-atlas -l -o myatlas_landscape atlas_p_dummy.cfg dum
-atlas -o myatlas_portrait atlas_l_dummy.cfg dum

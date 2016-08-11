@@ -1,0 +1,74 @@
+
+go window_init
+go page_size 640
+
+set mode metafile demo_cfc_2.plt
+
+go page_new -i 2 3 0 100 10 90
+
+!----------------------
+go logo_put ocmip
+
+!----------------------
+let new_a=CFC11[k=1,l=1]*1E+9
+def sym qualifiers=/lev=(-1E-4)(1,9,0.5)(1E+4)
+
+!----------------------
+set v 1
+def sym MODEL=MPIM
+use "($DB)/phase2/($MODEL)/CFC/($MODEL)_CFC_1980.nc"
+let a = if mask[k=1,d=($MODEL)_grid.nc] eq 1 then new_a
+go map_cylin ($MODEL) 0 a 10 ($qualifiers)/title=($MODEL)/nokey earth_continents
+cancel data/all
+
+!----------------------
+define view/xlim=0,1/ylim=0.,0.1 colorbar
+set v colorbar
+go colorbar_put -h 10 90 10 50 0.3 ($qualifiers)
+
+!----------------------
+set v 2
+def sym MODEL=AWI
+use "($DB)/phase2/($MODEL)/CFC/($MODEL)_CFC_1980.nc"
+let a = if mask[k=1,d=($MODEL)_grid.nc] eq 1 then new_a
+go map_cylin ($MODEL) 0 a 10 ($qualifiers)/title=($MODEL)/nokey earth_continents
+cancel data/all
+
+!----------------------
+set v 3
+def sym MODEL=IPSL
+use "($DB)/phase2/($MODEL)/CFC/($MODEL)_CFC_1980.nc"
+let a = if mask[k=1,d=($MODEL)_grid.nc] eq 1 then new_a
+go map_cylin ($MODEL) 0 a 10 ($qualifiers)/title=($MODEL)/nokey earth_continents
+cancel data/all
+
+!----------------------
+set v 4
+def sym MODEL=SOC
+use "($DB)/phase2/($MODEL)/CFC/($MODEL)_CFC_1980.nc"
+let a = if mask[k=1,d=($MODEL)_grid.nc] eq 1 then new_a
+go map_cylin ($MODEL) 0 a 10 ($qualifiers)/title=($MODEL)/nokey earth_continents
+cancel data/all
+
+!----------------------
+set v 5
+def sym MODEL=UL
+use "($DB)/phase2/($MODEL)/CFC/($MODEL)_CFC_1980.nc"
+let a = if mask[k=1,d=($MODEL)_grid.nc] eq 1 then new_a
+go map_cylin ($MODEL) 0 a 10 ($qualifiers)/title=($MODEL)/nokey earth_continents
+cancel data/all
+
+!----------------------
+set v 6
+def sym MODEL=PRINCE
+use "($DB)/phase2/($MODEL)/CFC/($MODEL)_CFC_1980.nc"
+let a = if mask[k=1,d=($MODEL)_grid.nc] eq 1 then new_a
+go map_cylin ($MODEL) 0 a 10 ($qualifiers)/title=($MODEL)/nokey earth_continents
+cancel data/all
+
+!----------------------
+go textlayer_new
+go textlayer_text_put 50 98  "CFC11\\nfrom OCMIP\\nDODS database"
+
+!----------------------
+cancel mode metafile

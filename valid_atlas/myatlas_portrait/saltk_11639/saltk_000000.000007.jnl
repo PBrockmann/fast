@@ -1,2 +1,0 @@
-go "script_landscape.jnl" salt[k=7]
-exit
