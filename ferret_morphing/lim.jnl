@@ -1,0 +1,32 @@
+
+set window/aspect=1 1
+
+!def symbol zoom=/hlim=-0.5:0.5/vlim=-0.5:0.5
+ppl set zoom
+
+!----------------------------------------
+use "/home/brock/output_cpl/2L27_SE_2030_2039_output/2L27_SE_2030_2039_icemod.nc"
+
+let var=isnowthi[l=@sum]
+
+let mylon=140
+let mylat=70
+
+!~~~~~~~~~~~~~
+go map_ortho ORCA2.0 mylon mylat var 10 /nokey/line/pal=idl_008/lev=20($zoom) earth_continents
+!polygon/line=7/noaxes/over/nolab {-0.5,-0.5,0.5,0.5},{-0.5,0.5,0.5,-0.5}
+frame/file=lim.gif
+message
+
+!~~~~~~~~~~~~~
+let ME_lon=nav_lon
+let ME_lat=nav_lat
+go ratio_set 1 10
+go my_mp_orthographic mylon mylat ME_lon ME_lat
+fill/nokey/nolab/noaxes/pal=idl_008/lev=20($zoom) var*ME_mp_mask, ME_x_page, ME_y_page
+ppl conset 0
+ppl contour/over
+go cont_ortho2 mylon mylat /line=1/over earth_continents
+!polygon/line=7/noaxes/over/nolab {-0.5,-0.5,0.5,0.5},{-0.5,0.5,0.5,-0.5}
+frame/file=lim.gif
+message

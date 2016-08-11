@@ -1,0 +1,9 @@
+
+convert -morph 5 tt1.gif tt2.gif tt3.gif tt4.gif tt1.gif frame_%02d.png
+rm frame_24.png
+
+make_flash --logo /home/brock/fast/make_flash.swfs/ipsl_igcmg_fr.swf fast_demo.swf "FERRET/FAST/ATLAS"  "For IPSL coupled model" "Contact: Patrick.Brockmann@cea.fr" frame_*.png
+
+convert -resize 40%x40% present_02.gif tyty_%02d.gif
+convert -loop 0 -delay 50 tyty_??.gif tutu.gif
+
