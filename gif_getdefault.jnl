@@ -22,9 +22,9 @@
 !
 ! Author: Patrick Brockmann
 ! Contact: Patrick.Brockmann@ipsl.jussieu.fr
-! $Date: 2009/05/14 15:04:00 $
-! $Name: FAST_608_1_3 $
-! $Revision: 1.1.1.7 $
+! $Date: 2011/09/07 15:02:55 $
+! $Name: FAST_672_1_0 $
+! $Revision: 1.1.1.8 $
 ! History:
 ! Modification:
 !
@@ -34,16 +34,15 @@ def sym arg1=$1%none%
 
 ! Create and save a gif image
 !--------------------------------------------
-set graphics/antialias
 SET WINDOW/ASPECT=0.75      ! default value
 SHADE/i=1:10/j=1:15 i+j     ! a sample plot
-FRAME/FILE=gif_getdefault.png     ! save the plot as a gif.
+FRAME/FILE=gif_getdefault.gif     ! save the plot as a gif.
 
 ! Get size of the produced image
 !--------------------------------------------
-let width_default_0={spawn: 'identify -format "%w\r" gif_getdefault.png'}
+let width_default_0={spawn: 'identify -format "%w\r" gif_getdefault.gif'}
 let width_default=`strfloat(width_default_0[i=1])`
-let height_default_0={spawn: 'identify -format "%h\r" gif_getdefault.png'}
+let height_default_0={spawn: 'identify -format "%h\r" gif_getdefault.gif'}
 let height_default=`strfloat(height_default_0[i=1])`
 
 IF ($arg1%|-v>TRUE|*>FALSE%) THEN
@@ -51,7 +50,7 @@ IF ($arg1%|-v>TRUE|*>FALSE%) THEN
 endif
 
 !--------------------------------------------
-spawn rm -f gif_getdefault.png
+spawn rm -f gif_getdefault.gif
 
 !--------------------------------------------
 set mode/last verify

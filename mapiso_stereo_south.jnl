@@ -17,9 +17,9 @@
 !
 ! Author: Patrick Brockmann
 ! Contact: Patrick.Brockmann@ipsl.jussieu.fr
-! $Date: 2009/05/14 15:04:00 $
-! $Name: FAST_608_1_3 $
-! $Revision: 1.1.1.7 $
+! $Date: 2011/09/07 15:03:55 $
+! $Name: FAST_672_1_0 $
+! $Revision: 1.1.1.8 $
 ! History:
 ! Modification:
 !
@@ -27,7 +27,7 @@
 define symbol ME_GRID = $1
 let ME_CM = $2
 define symbol ME_margin = $4%40%
-define symbol ME_cmd = $5%shade/hlim=-1:1/vlim=-1:1%/noaxis
+define symbol ME_cmd = $5%shade%/noaxis/hlim=-1:1/vlim=-1:1
 
 !**************************************************************
 let ME_VAR = $3

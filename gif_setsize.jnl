@@ -17,9 +17,9 @@
 !
 ! Author: Patrick Brockmann
 ! Contact: Patrick.Brockmann@ipsl.jussieu.fr
-! $Date: 2009/05/14 15:04:00 $
-! $Name: FAST_608_1_3 $
-! $Revision: 1.1.1.7 $
+! $Date: 2011/10/11 14:57:17 $
+! $Name: FAST_672_1_0 $
+! $Revision: 1.1.1.9 $
 ! History:
 ! Modification:
 !
@@ -35,8 +35,6 @@ let height=$2
 
 LET ratio= height/width
 LET frac = (0.7*width*height)/(width_default*height_default)
-
-list width_default, height_default
 
 list ratio, frac
 LET ratio= height/width
