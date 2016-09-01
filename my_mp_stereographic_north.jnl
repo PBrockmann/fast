@@ -20,7 +20,7 @@
 ! Description:  Sets up variables for a Stereographic North map of the world
 !
 ! Usage:                   arg1               arg2
-!  go mp_stereographic_north [central meridian] [standard parallel]
+!  go mp_stereographic_north [central meridian] [standard parallel] [lon2D] [lat2D]
 !
 ! arg 1 - longitude used for the center of the projection
 ! arg 2 - latitude used for the center of the projection
