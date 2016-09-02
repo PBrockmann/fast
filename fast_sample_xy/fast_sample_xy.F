@@ -13,8 +13,6 @@ C
 C Author: Patrick Brockmann
 C Contact: Patrick.Brockmann@cea.fr
 C Date: $
-C $Name: FAST_672_1_0 $
-C $Revision: 1.1.1.5 $
 C
 C**************************************************************
 

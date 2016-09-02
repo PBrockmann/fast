@@ -5,9 +5,6 @@
 #**************************************************************
 # Author: Patrick Brockmann
 # Contact: Patrick.Brockmann@cea.fr
-# $Date: 2011/09/07 15:03:56 $
-# $Name: FAST_672_1_0 $
-# $Revision: 1.1.1.5 $
 # History:
 # Modification:
 #  - 08/04/2008 Add direction controls (Forward, Rocking, Backward)

@@ -9,9 +9,6 @@
 #
 # Author: Patrick Brockmann
 # Contact: Patrick.Brockmann@ipsl.jussieu.fr
-# $Date: 2011/09/07 15:03:11 $
-# $Name: FAST_672_1_0 $
-# $Revision: 1.1.1.8 $
 # History:
 # Modification:
 #

@@ -2,8 +2,7 @@
 
 message/continue *********************************
 message/continue FAST (Ferret Analysis Scripting Toolbox)
-message/continue Released as $Name: FAST_672_1_0 $
-message/continue More informations: http://dods.ipsl.jussieu.fr/fast
+message/continue More informations: https://github.com/PBrockmann/fast
 message/continue *********************************
 
 set mode verify

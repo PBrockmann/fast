@@ -2,9 +2,6 @@
 #
 # Author: Patrick Brockmann
 # Contact: Patrick.Brockmann@ipsl.jussieu.fr
-# $Date: 2011/09/07 15:03:54 $
-# $Name: FAST_672_1_0 $
-# $Revision: 1.1.1.5 $
 # History:
 # Modification:
 #
@@ -165,7 +162,6 @@ Validated by
 
 <br>
 <font face="Arial,Helvetica">
-FAST tagname: $Name: FAST_570_1_3<br>
 More informations: 
 <a href="http://dods.ipsl.jussieu.fr/fast">
 http://dods.ipsl.jussieu.fr/fast

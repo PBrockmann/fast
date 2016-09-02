@@ -18,9 +18,6 @@
 !
 ! Author: Patrick Brockmann 
 ! Contact: Patrick.Brockmann@ipsl.jussieu.fr  
-! $Date: 2011/09/07 15:02:54 $
-! $Name: FAST_672_1_0 $
-! $Revision: 1.1.1.28 $
 ! History:
 !  * The classic "go land" script gives continents with some 
 !  discontinuties. Here there are 2 world maps continuous
