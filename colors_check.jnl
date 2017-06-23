@@ -16,12 +16,12 @@
 !
 !**************************************************************
 
-! FF0000 FF8000 FFFF00 80FF00 00FF00 00FF80 00FFFF 0080FF 0000FF 8000FF FF00FF FF0080
-!let colors={"8000FF","FF0080","FFFB01","80FF00","00FF80","0080FF","FF00FF","FF0000","FFFF00","00FF00","00FFFF","0000FF"}
-! from http://www.ncl.ucar.edu/Document/Graphics/ColorTables/Images/amwg.gif
-! and personnal choices with kcolorchooser
-let colors={"3B63E6", "FF4500", "FFE000", "34D314", "FF1392", "FFA400", "775BB4", "F5E6BD", "789BF1", "AFDFE6", "0000C7", "1FB1AA", "B12121", "DEB886", "FFB6C1"}
+set mode linecolors 30
 
-plot i[i=1:50]
+let colors={"3B63E6", "FF4500", "FFE000", "34D314", "FF1392", "FFA400", "775BB4", "F5E6BD", "789BF1", "AFDFE6", "0000C7", "1FB1AA", "B12121", "DEB886", "FFB6C1", "CCCCCC"}
+! Keep black in #1, gray will be at #17
+repeat/name=dv/range=1:16 ( define symbol ds=`dv` ; go set_color_from_hexa `dv+1` `colors[i=($ds)]` )
 
-repeat/range=1:`colors,return=iend`/name=n (def sym ns=`n` ; say `colors[i=($ns)]` ; go set_color_from_hexa 2 `colors[i=($ns)]` ; plot/over/color=2/thick=3/line/nolab i[i=1:50]+`n-1`)
+plot/thick=3/line/color=2/nolab/grat=(dash,color=17)/vlim=0:10 sin(i[i=1:60]/10)+8 ; label 61, `8-0.3`, -1, 0, 0.1, "@C002`colors[i=1]`"
+
+repeat/name=n/range=3:16 ( plot/thick=3/line/color=`n`/o/nolab sin(i[i=1:60]/10)+`8-(n-2)*0.3` ; def sym n=`n` ; label 61, `8-0.3-(n-2)*0.3`, -1, 0, 0.1, "@C`n,zw=3``colors[i=($n)]`")
