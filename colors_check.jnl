@@ -18,10 +18,9 @@
 
 set mode linecolors 30
 
-let colors={"3B63E6", "FF4500", "FFE000", "34D314", "FF1392", "FFA400", "775BB4", "F5E6BD", "789BF1", "AFDFE6", "0000C7", "1FB1AA", "B12121", "DEB886", "FFB6C1", "CCCCCC"}
+let colors={"3B63E6", "FF4500", "FFE000", "34D314", "FF1392", "FFA400", "775BB4", "9ACD32", "789BF1", "AFDFE6", "0000C7", "1FB1AA", "B12121", "DEB886", "FFB6C1", "CCCCCC"}
 ! Keep black in #1, gray will be at #17
 repeat/name=dv/range=1:16 ( define symbol ds=`dv` ; go set_color_from_hexa `dv+1` `colors[i=($ds)]` )
 
 plot/thick=3/line/color=2/nolab/grat=(dash,color=17)/vlim=0:10 sin(i[i=1:60]/10)+8 ; label 61, `8-0.3`, -1, 0, 0.1, "@C002`colors[i=1]`"
-
-repeat/name=n/range=3:16 ( plot/thick=3/line/color=`n`/o/nolab sin(i[i=1:60]/10)+`8-(n-2)*0.3` ; def sym n=`n` ; label 61, `8-0.3-(n-2)*0.3`, -1, 0, 0.1, "@C`n,zw=3``colors[i=($n)]`")
+repeat/name=n/range=2:16 ( plot/thick=3/line/color=`n+1`/o/nolab sin(i[i=1:60]/10)+`8-(n-1)*0.3` ; def sym n=`n` ; label 61, `8-0.3-(n-1)*0.3`, -1, 0, 0.1, "@C`n+1,zw=3``colors[i=($n)]`" )
