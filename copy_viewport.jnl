@@ -1,0 +1,52 @@
+\CANCEL MODE VERIFY
+
+!**************************************************************
+! Description:
+!
+!  Creates a copy of the current viewport with a new name
+!  Copy the margins
+!  Set this new viewport
+!
+! Usage : GO copy_viewport [<New viewport name>]
+!
+! Example :
+!   yes? SET VIEWPORT FULL
+!   yes? PLOT/AXES=(1,0,1,0)/LINE=2 I[I=1:50]
+!   yes? GO copy_viewport
+!   yes? PLOT/AXES=(0,1,0,1)/LINE=3 100*I[I=1:50]^2
+!
+! Author: Olivier Marti
+! Contact: olivier.marti@lsce.ipsl.fr
+!
+!**************************************************************
+
+DEFINE SYMBOL view_copy = `($view_copy"0") + 1`  ! Keep memory of viewports created
+DEFINE SYMBOL ME_view $1"view_copy_($view_copy)" ! New viewport name
+
+! Get information about the current viewport
+DEFINE SYMBOL ME_VP_XLO    `($VP_XLO)`
+DEFINE SYMBOL ME_VP_XHI    `($VP_XHI)`
+DEFINE SYMBOL ME_VP_YLO    `($VP_YLO)`
+DEFINE SYMBOL ME_VP_YHI    `($VP_YHI)`
+
+! Get information about the current margins
+DEFINE SYMBOL ME_plot_xorg `($PPL$XORG)`
+DEFINE SYMBOL ME_plot_yorg `($PPL$YORG)`
+DEFINE SYMBOL ME_plot_xlen `($PPL$XLEN)`
+DEFINE SYMBOL ME_plot_ylen `($PPL$YLEN)`
+
+! Defines the new viewport
+DEFINE VIEWPORT/XLIM=($ME_VP_XLO),($ME_VP_XHI)/YLIM=($ME_VP_YLO),($ME_VP_YHI) ($ME_view)
+
+! Set this new viewport as the current viewport
+SET VIEWPORT ($ME_view)
+
+! Set the margin
+PPL origin ($ME_plot_xorg), ($ME_plot_yorg)
+PPL axlen  ($ME_plot_xlen), ($ME_plot_ylen)
+
+! Cleaning
+CANCEL SYMBOL ME_*
+
+! That's all folks !
+SET MODE/LAST VERIFY
